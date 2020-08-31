@@ -9,15 +9,15 @@
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 var TSOS;
 (function (TSOS) {
-    class Shell {
-        constructor() {
+    var Shell = /** @class */ (function () {
+        function Shell() {
             // Properties
             this.promptStr = ">";
             this.commandList = [];
             this.curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
             this.apologies = "[sorry]";
         }
-        init() {
+        Shell.prototype.init = function () {
             var sc;
             //
             // Load the command list.
@@ -44,16 +44,24 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
+            // date
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "- Displays the current date.");
+            this.commandList[this.commandList.length] = sc;
+            // whereami
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "- Displays the user's location");
+            this.commandList[this.commandList.length] = sc;
+            // bond
+            sc = new TSOS.ShellCommand(this.shellBond, "bond", "- Bond. James Bond.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
             this.putPrompt();
-        }
-        putPrompt() {
+        };
+        Shell.prototype.putPrompt = function () {
             _StdOut.putText(this.promptStr);
-        }
-        handleInput(buffer) {
+        };
+        Shell.prototype.handleInput = function (buffer) {
             _Kernel.krnTrace("Shell Command~" + buffer);
             //
             // Parse the input...
@@ -95,9 +103,9 @@ var TSOS;
                     this.execute(this.shellInvalidCommand);
                 }
             }
-        }
+        };
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
-        execute(fn, args) {
+        Shell.prototype.execute = function (fn, args) {
             // We just got a command, so advance the line...
             _StdOut.advanceLine();
             // ... call the command function passing in the args with some über-cool functional programming ...
@@ -108,8 +116,8 @@ var TSOS;
             }
             // ... and finally write the prompt again.
             this.putPrompt();
-        }
-        parseInput(buffer) {
+        };
+        Shell.prototype.parseInput = function (buffer) {
             var retVal = new TSOS.UserCommand();
             // 1. Remove leading and trailing spaces.
             buffer = TSOS.Utils.trim(buffer);
@@ -131,12 +139,12 @@ var TSOS;
                 }
             }
             return retVal;
-        }
+        };
         //
         // Shell Command Functions. Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
-        shellInvalidCommand() {
+        Shell.prototype.shellInvalidCommand = function () {
             _StdOut.putText("Invalid Command. ");
             if (_SarcasticMode) {
                 _StdOut.putText("Unbelievable. You, [subject name here],");
@@ -146,14 +154,14 @@ var TSOS;
             else {
                 _StdOut.putText("Type 'help' for, well... help.");
             }
-        }
-        shellCurse() {
+        };
+        Shell.prototype.shellCurse = function () {
             _StdOut.putText("Oh, so that's how it's going to be, eh? Fine.");
             _StdOut.advanceLine();
             _StdOut.putText("Bitch.");
             _SarcasticMode = true;
-        }
-        shellApology() {
+        };
+        Shell.prototype.shellApology = function () {
             if (_SarcasticMode) {
                 _StdOut.putText("I think we can put our differences behind us.");
                 _StdOut.advanceLine();
@@ -163,35 +171,65 @@ var TSOS;
             else {
                 _StdOut.putText("For what?");
             }
-        }
+        };
         // Although args is unused in some of these functions, it is always provided in the 
         // actual parameter list when this function is called, so I feel like we need it.
-        shellVer(args) {
+        Shell.prototype.shellVer = function (args) {
             _StdOut.putText(APP_NAME + " version " + APP_VERSION);
-        }
-        shellHelp(args) {
+        };
+        Shell.prototype.shellHelp = function (args) {
             _StdOut.putText("Commands:");
             for (var i in _OsShell.commandList) {
                 _StdOut.advanceLine();
                 _StdOut.putText("  " + _OsShell.commandList[i].command + " " + _OsShell.commandList[i].description);
             }
-        }
-        shellShutdown(args) {
+        };
+        Shell.prototype.shellShutdown = function (args) {
             _StdOut.putText("Shutting down...");
             // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed. If possible. Not a high priority. (Damn OCD!)
-        }
-        shellCls(args) {
+        };
+        Shell.prototype.shellCls = function (args) {
             _StdOut.clearScreen();
             _StdOut.resetXY();
-        }
-        shellMan(args) {
+        };
+        Shell.prototype.shellMan = function (args) {
             if (args.length > 0) {
                 var topic = args[0];
                 switch (topic) {
                     case "help":
                         _StdOut.putText("Help displays a list of (hopefully) valid commands.");
+                        break;
+                    case "ver":
+                        _StdOut.putText("Ver displays the current OS version.");
+                        break;
+                    case "man":
+                        _StdOut.putText("If you dont know what 'man' does then you need to reevaluate.");
+                        break;
+                    case "shutdown":
+                        _StdOut.putText("Shut's down the OS while keeping the CPU running passively.");
+                        break;
+                    case "cls":
+                        _StdOut.putText("Clear screen resets the cursor position and the state of the display.");
+                        break;
+                    case "trace":
+                        _StdOut.putText("Trace toggles the status of the OS tracer.");
+                        break;
+                    case "rot13":
+                        _StdOut.putText("No idea what this means at all."); // TODO: change this message.
+                        break;
+                    case "prompt":
+                        _StdOut.putText("Prompt changes the default character at the start of each line prompt.");
+                        break;
+                    case "date":
+                        _StdOut.putText("Date simply displays the current system date.");
+                        break;
+                    case "whereami":
+                        _StdOut.putText("WhereAmI provides the current location to the user.");
+                        break;
+                    case "bond":
+                        _StdOut.putText("Provides a random James Bond quote (Don't worry, there's no Craig).");
                         break;
                     // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
@@ -201,8 +239,8 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: man <topic>  Please supply a topic.");
             }
-        }
-        shellTrace(args) {
+        };
+        Shell.prototype.shellTrace = function (args) {
             if (args.length > 0) {
                 var setting = args[0];
                 switch (setting) {
@@ -226,8 +264,8 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: trace <on | off>");
             }
-        }
-        shellRot13(args) {
+        };
+        Shell.prototype.shellRot13 = function (args) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
                 _StdOut.putText(args.join(' ') + " = '" + TSOS.Utils.rot13(args.join(' ')) + "'");
@@ -235,16 +273,32 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: rot13 <string>  Please supply a string.");
             }
-        }
-        shellPrompt(args) {
+        };
+        Shell.prototype.shellPrompt = function (args) {
             if (args.length > 0) {
                 _OsShell.promptStr = args[0];
             }
             else {
                 _StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
-        }
-    }
+        };
+        Shell.prototype.shellDate = function (args) {
+            _StdOut.putText("Current Date: " + new Date() + ".");
+        };
+        Shell.prototype.shellWhereAmI = function (args) {
+            _StdOut.putText("Find a map dummy.");
+        };
+        Shell.prototype.shellBond = function (args) {
+            var quotes = ["Bond. James Bond.", "A martini. Shaken, not stirred.",
+                "There's a saying in England: Where there's smoke there's fire.", "I think he got the point.",
+                "Just a slight stiffness coming on... In the shoulder.", "Keeping the British end up, sir.",
+                "I thought Christmas only comes once a year.", "Shocking. Positively shocking.",
+                "That's just as bad as listening to the Beatles without earmuffs.",
+                "Oh, I travel -- sort of a licenced troubleshooter.", "Now there's a name to die for.",
+                "I must be dreaming.", "I always enjoyed studying a new tongue."];
+            _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
+        };
+        return Shell;
+    }());
     TSOS.Shell = Shell;
 })(TSOS || (TSOS = {}));
-//# sourceMappingURL=shell.js.map

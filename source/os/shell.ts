@@ -8,7 +8,6 @@
    ------------ */
 
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
-
 module TSOS {
     export class Shell {
         // Properties
@@ -69,8 +68,25 @@ module TSOS {
 
             // prompt <string>
             sc = new ShellCommand(this.shellPrompt,
-                                  "prompt",
-                                  "<string> - Sets the prompt.");
+                "prompt",
+                "<string> - Sets the prompt.");
+
+            // date
+            sc = new ShellCommand(this.shellDate,
+                "date",
+                "- Displays the current date.");
+            this.commandList[this.commandList.length] = sc;
+
+            // whereami
+            sc = new ShellCommand(this.shellWhereAmI,
+                "whereami",
+                "- Displays the user's location");
+            this.commandList[this.commandList.length] = sc;
+
+            // bond
+            sc = new ShellCommand(this.shellBond,
+                "bond",
+                "- Bond. James Bond.");
             this.commandList[this.commandList.length] = sc;
 
             // ps  - list the running processes and their IDs
@@ -234,7 +250,36 @@ module TSOS {
                     case "help":
                         _StdOut.putText("Help displays a list of (hopefully) valid commands.");
                         break;
-                    // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
+                    case "ver":
+                        _StdOut.putText("Ver displays the current OS version.");
+                        break;
+                    case "man":
+                        _StdOut.putText("If you dont know what 'man' does then you need to reevaluate.");
+                        break;
+                    case "shutdown":
+                        _StdOut.putText("Shut's down the OS while keeping the CPU running passively.");
+                        break;
+                    case "cls":
+                        _StdOut.putText("Clear screen resets the cursor position and the state of the display.");
+                        break;
+                    case "trace":
+                        _StdOut.putText("Trace toggles the status of the OS tracer.");
+                        break;
+                    case "rot13":
+                        _StdOut.putText("No idea what this means at all."); // TODO: change this message.
+                        break;
+                    case "prompt":
+                        _StdOut.putText("Prompt changes the default character at the start of each line prompt.");
+                        break;
+                    case "date":
+                        _StdOut.putText("Date simply displays the current system date.");
+                        break;
+                    case "whereami":
+                        _StdOut.putText("WhereAmI provides the current location to the user.");
+                        break;
+                    case "bond":
+                        _StdOut.putText("Provides a random James Bond quote (Don't worry, there's no Craig).");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -284,5 +329,24 @@ module TSOS {
             }
         }
 
+        public shellDate(args: string[]) {
+            _StdOut.putText("Current Date: " + new Date() + ".");
+        }
+
+        public shellWhereAmI(args: string[]) {
+            _StdOut.putText("Find a map dummy.");
+        }
+
+        public shellBond(args: string[]) {
+            let quotes: string[] = ["Bond. James Bond.", "Oh, just a drink. A martini, shaken, not stirred.",
+                "There's a saying in England: Where there's smoke there's fire.", "I think he got the point.",
+                "Just a slight stiffness coming on... In the shoulder.", "Keeping the British end up, sir.",
+                "I thought Christmas only comes once a year.", "Shocking. Positively shocking.",
+                "That's just as bad as listening to the Beatles without earmuffs.", "I must be dreaming.",
+                "I always enjoyed studying a new tongue.", "The things I do for England.",
+                "This never happened to the other fella.", "Beg your pardon. Forgot to knock.",
+                "World domination. Same old dream.", "Excuse my friend. She's just dead."];
+            _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
+        }
     }
 }
