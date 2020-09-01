@@ -42,6 +42,17 @@ var TSOS;
                     // ... and reset our buffer.
                     this.buffer = "";
                 }
+                else if (chr === String.fromCharCode(8)) { // the Backspace key
+                    // Height and width are irrelevant because no text will ever be below
+                    // Draws a blank rectangle at the position of the current
+                    var len = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                    _DrawingContext.clearRect(this.currentXPosition - len, this.currentYPosition - this.currentFontSize, 100, 100);
+                    // Sets the cursor position to one character backwards
+                    this.currentXPosition = this.currentXPosition - _DrawingContext
+                        .measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                    // Updates the buffer
+                    this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                }
                 else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...

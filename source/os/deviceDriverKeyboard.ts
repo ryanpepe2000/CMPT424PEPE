@@ -29,6 +29,7 @@ module TSOS {
 
         public krnKbdDispatchKeyPress(params) {
             // Parse the params.  TODO: Check that the params are valid and osTrapError if not.
+            if (params[0] == null || params[1] == null) _Kernel.krnTrapError("Invalid params"); //prevents unwanted inputs from making it into code
             var keyCode = params[0];
             var isShifted = params[1];
             _Kernel.krnTrace("Key code:" + keyCode + " shifted:" + isShifted);
@@ -44,8 +45,48 @@ module TSOS {
                 _KernelInputQueue.enqueue(chr);
             } else if (((keyCode >= 48) && (keyCode <= 57)) ||   // digits
                         (keyCode == 32)                     ||   // space
+                        (keyCode == 8)                      ||   // backspace
                         (keyCode == 13)) {                       // enter
-                chr = String.fromCharCode(keyCode);
+                // Check to see if it is necessary to convert chr to symbol
+                if (isShifted === true) {
+                    switch (keyCode){
+                        case 48: // 0 key
+                            chr = ")";
+                            break;
+                        case 49: //1 key
+                            chr = "!";
+                            break;
+                        case 50: // 2 key
+                            chr = "@";
+                            break;
+                        case 51: // 3 key
+                            chr = "#";
+                            break;
+                        case 52: // 4 key
+                            chr = "$";
+                            break;
+                        case 53: // 5 key
+                            chr = "%";
+                            break;
+                        case 54: // 6 key
+                            chr = "^";
+                            break;
+                        case 55: // 7 key
+                            chr = "&";
+                            break;
+                        case 56: // 8 key
+                            chr = "*";
+                            break;
+                        case 57: // 9 key
+                            chr = "(";
+                            break;
+                        default:
+                            chr = String.fromCharCode(keyCode);
+                            break;
+                    }
+                } else {
+                    chr = String.fromCharCode(keyCode);
+                }
                 _KernelInputQueue.enqueue(chr);
             }
         }

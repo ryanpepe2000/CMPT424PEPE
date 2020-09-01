@@ -231,7 +231,6 @@ var TSOS;
                     case "bond":
                         _StdOut.putText("Provides a random James Bond quote (Don't worry, there's no Craig).");
                         break;
-                    // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -289,13 +288,14 @@ var TSOS;
             _StdOut.putText("Find a map dummy.");
         };
         Shell.prototype.shellBond = function (args) {
-            var quotes = ["Bond. James Bond.", "A martini. Shaken, not stirred.",
+            var quotes = ["Bond. James Bond.", "Oh, just a drink. A martini, shaken, not stirred.",
                 "There's a saying in England: Where there's smoke there's fire.", "I think he got the point.",
                 "Just a slight stiffness coming on... In the shoulder.", "Keeping the British end up, sir.",
                 "I thought Christmas only comes once a year.", "Shocking. Positively shocking.",
-                "That's just as bad as listening to the Beatles without earmuffs.",
-                "Oh, I travel -- sort of a licenced troubleshooter.", "Now there's a name to die for.",
-                "I must be dreaming.", "I always enjoyed studying a new tongue."];
+                "That's just as bad as listening to the Beatles without earmuffs.", "I must be dreaming.",
+                "I always enjoyed studying a new tongue.", "The things I do for England.",
+                "This never happened to the other fella.", "Beg your pardon. Forgot to knock.",
+                "World domination. Same old dream.", "Excuse my friend. She's just dead."];
             _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
         };
         return Shell;
