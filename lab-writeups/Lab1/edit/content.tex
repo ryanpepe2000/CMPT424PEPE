@@ -1,0 +1,39 @@
+%-----------------------------------------------------------------------------------------------------
+%TABLE OF CONTENTS (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD TABLE OF CONTENTS)
+%-----------------------------------------------------------------------------------------------------
+\tableofcontents 
+\newpage
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%REPORT TEXT
+%-----------------------------------------------------------------------------------------------------
+%\section{Introduction}
+%    \lipsum[1,1]
+\section{Questions}
+    \begin{enumerate}
+        \item What are the advantages and disadvantages	of using the same system call interface for manipulating both files and devices?
+        \item[] Using the same system call interface for manipulating both files and devices is a very useful because it can reduce the complexity of the OS. This method would allow IO devices to be accessed in a similar way to the way that files are accessed. For example, there could be a similar method for opening or reading information from a file or device: \texttt{open()} or \texttt{read()}. On the other hand, using the same system call interface forces devices and files to be managed the same way. For this reason, there might be certain aspects of the file management / IO device management that are lost due to the API.
+        \item Would it be possible for the user to develop a new command interpreter using the system call interface provided by the operating system? Why?
+        \item[] Yes, it is possible for the user to develop a new command interpreter using the system call interface. In fact, we are currently working on that in our semester project. The system call interface can be accessed by the user; therefore, the user can access the kernel through a series of interrupts brought forth by these system calls. The command-line interpreter is merely a method executing system calls to make changes to the system through the kernel. After all, \textbf{kernel is god.}
+    \end{enumerate}
+%\section{Conclusion}
+%    \lipsum[4-4] %dummy text, replace with original text
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%BIBLIOGRAPHY (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD BIBLIOGRAPHY)
+%-----------------------------------------------------------------------------------------------------
+%
+%\begin{thebibliography}{}%
+%
+%\bibitem{reference_label1}
+%{2.Author}. \textit{1. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\bibitem{reference_label2}
+%{2.Author}. \textit{2. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\end{thebibliography}
+%-----------------------------------------------------------------------------------------------------
