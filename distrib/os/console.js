@@ -43,14 +43,8 @@ var TSOS;
                     this.buffer = "";
                 }
                 else if (chr === String.fromCharCode(8)) { // the Backspace key
-                    // Height and width are irrelevant because no text will ever be below
-                    // Draws a blank rectangle at the position of the current
-                    var len = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
-                    _DrawingContext.clearRect(this.currentXPosition - len, this.currentYPosition - this.currentFontSize, 100, 100);
-                    // Sets the cursor position to one character backwards
-                    this.currentXPosition = this.currentXPosition - _DrawingContext
-                        .measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
-                    // Updates the buffer
+                    this.deleteText(chr);
+                    // Must remove the last character from the buffer. Note the use of "substring" rather than "substr"
                     this.buffer = this.buffer.substring(0, this.buffer.length - 1);
                 }
                 else {
@@ -77,6 +71,25 @@ var TSOS;
                 // Move the current X position.
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
+                // First attempt at advance line
+                // If the next character
+                if (_Canvas.width - offset <= this.currentXPosition) {
+                    this.advanceLine();
+                }
+            }
+        };
+        // Works the same was as putText but sets x pos before drawing the blank rect
+        Console.prototype.deleteText = function (text) {
+            // Draws a blank rectangle at the position of the current
+            if (text !== "") {
+                if (this.currentXPosition <= 0) {
+                    this.retreatLine();
+                }
+                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                // Must update current x pos for next chr input
+                this.currentXPosition = this.currentXPosition - offset;
+                // Height of rectangle is irrelevant because there will never be text beneath the current location
+                _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - this.currentFontSize, offset, offset * 5);
             }
         };
         Console.prototype.advanceLine = function () {
@@ -90,6 +103,18 @@ var TSOS;
                 _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
                 _FontHeightMargin;
             // TODO: Handle scrolling. (iProject 1)
+        };
+        Console.prototype.retreatLine = function () {
+            this.currentXPosition = 0;
+            if (this.buffer.length < 50)
+                this.currentXPosition += _DrawingContext
+                    .measureText(this.currentFont, this.currentFontSize, new TSOS.Shell().promptStr);
+            for (var idx = 0; idx <= this.buffer.length; idx++) {
+                this.currentXPosition += _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(idx));
+            }
+            this.currentYPosition -= (_DefaultFontSize +
+                _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                _FontHeightMargin);
         };
         return Console;
     }());

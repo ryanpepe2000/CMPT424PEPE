@@ -42,14 +42,8 @@ module TSOS {
                     // ... and reset our buffer.
                     this.buffer = "";
                 } else if (chr === String.fromCharCode(8)) { // the Backspace key
-                    // Height and width are irrelevant because no text will ever be below
-                    // Draws a blank rectangle at the position of the current
-                    let len =_DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
-                    _DrawingContext.clearRect(this.currentXPosition-len, this.currentYPosition-this.currentFontSize, 100, 100);
-                    // Sets the cursor position to one character backwards
-                    this.currentXPosition = this.currentXPosition - _DrawingContext
-                        .measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
-                    // Updates the buffer
+                    this.deleteText(chr);
+                    // Must remove the last character from the buffer. Note the use of "substring" rather than "substr"
                     this.buffer = this.buffer.substring(0, this.buffer.length-1);
                 } else {
                     // This is a "normal" character, so ...
@@ -74,9 +68,33 @@ module TSOS {
                 // Draw the text at the current X and Y coordinates.
                 _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
                 // Move the current X position.
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+                let offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
+
+                // First attempt at advance line
+                // If the next character
+                if (_Canvas.width - offset <= this.currentXPosition) {
+                    this.advanceLine();
+                }
             }
+
+         }
+
+         // Works the same was as putText but sets x pos before drawing the blank rect
+         public deleteText(text): void {
+             // Draws a blank rectangle at the position of the current
+             if (text !== "") {
+                 if(this.currentXPosition <= 0){
+                     this.retreatLine();
+                 }
+                 let offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                 // Must update current x pos for next chr input
+                 this.currentXPosition = this.currentXPosition - offset;
+                 // Height of rectangle is irrelevant because there will never be text beneath the current location
+                 _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - this.currentFontSize, offset, offset*5);
+             }
+
+
          }
 
         public advanceLine(): void {
@@ -91,6 +109,18 @@ module TSOS {
                                      _FontHeightMargin;
 
             // TODO: Handle scrolling. (iProject 1)
+        }
+
+        public retreatLine(): void {
+            this.currentXPosition = 0;
+            if (this.buffer.length < 50) this.currentXPosition += _DrawingContext
+                .measureText(this.currentFont, this.currentFontSize, new Shell().promptStr);
+            for (let idx = 0; idx <= this.buffer.length; idx++) {
+                this.currentXPosition += _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(idx));
+            }
+            this.currentYPosition -= (_DefaultFontSize +
+                _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                _FontHeightMargin);
         }
     }
  }
