@@ -56,6 +56,9 @@ var TSOS;
             // Update the log console.
             var taLog = document.getElementById("taHostLog");
             taLog.value = str + taLog.value;
+            // Update the graphical taskbar
+            var taTaskBar = document.getElementById("taTaskBar");
+            taTaskBar.value = "Date: " + new Date().toLocaleString() + "\nStatus: Experiencing Pain";
             // TODO in the future: Optionally update a log database or some streaming service.
         };
         //

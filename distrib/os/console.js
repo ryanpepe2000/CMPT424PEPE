@@ -66,16 +66,16 @@ var TSOS;
                 decided to write one function and use the term "text" to connote string or char.
             */
             if (text !== "") {
-                // Draw the text at the current X and Y coordinates.
-                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
-                // Move the current X position.
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
                 // First attempt at advance line
                 // If the next character
+                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 if (_Canvas.width - offset <= this.currentXPosition) {
                     this.advanceLine();
                 }
+                // Draw the text at the current X and Y coordinates.
+                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                // Move the current X position.
+                this.currentXPosition = this.currentXPosition + offset;
             }
         };
         // Works the same was as putText but sets x pos before drawing the blank rect
@@ -106,10 +106,12 @@ var TSOS;
         };
         Console.prototype.retreatLine = function () {
             this.currentXPosition = 0;
-            if (this.buffer.length < 50)
+            // If the buffer is currently less than 60 (seems like a good start)
+            // the x position must be appended by the length of the prompt ('>' by default)
+            if (this.buffer.length < 100)
                 this.currentXPosition += _DrawingContext
                     .measureText(this.currentFont, this.currentFontSize, new TSOS.Shell().promptStr);
-            for (var idx = 0; idx <= this.buffer.length; idx++) {
+            for (var idx = 0; idx < this.buffer.length; idx++) {
                 this.currentXPosition += _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(idx));
             }
             this.currentYPosition -= (_DefaultFontSize +
