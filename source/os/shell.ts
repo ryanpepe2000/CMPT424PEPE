@@ -30,44 +30,44 @@ module TSOS {
 
             // ver
             sc = new ShellCommand(this.shellVer,
-                                  "ver",
-                                  "- Displays the current version data.");
+                "ver",
+                "- Displays the current version data.");
             this.commandList[this.commandList.length] = sc;
 
             // help
             sc = new ShellCommand(this.shellHelp,
-                                  "help",
-                                  "- This is the help command. Seek help.");
+                "help",
+                "- This is the help command. Seek help.");
             this.commandList[this.commandList.length] = sc;
 
             // shutdown
             sc = new ShellCommand(this.shellShutdown,
-                                  "shutdown",
-                                  "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
+                "shutdown",
+                "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
             this.commandList[this.commandList.length] = sc;
 
             // cls
             sc = new ShellCommand(this.shellCls,
-                                  "cls",
-                                  "- Clears the screen and resets the cursor position.");
+                "cls",
+                "- Clears the screen and resets the cursor position.");
             this.commandList[this.commandList.length] = sc;
 
             // man <topic>
             sc = new ShellCommand(this.shellMan,
-                                  "man",
-                                  "<topic> - Displays the MANual page for <topic>.");
+                "man",
+                "<topic> - Displays the MANual page for <topic>.");
             this.commandList[this.commandList.length] = sc;
 
             // trace <on | off>
             sc = new ShellCommand(this.shellTrace,
-                                  "trace",
-                                  "<on | off> - Turns the OS trace on or off.");
+                "trace",
+                "<on | off> - Turns the OS trace on or off.");
             this.commandList[this.commandList.length] = sc;
 
             // rot13 <string>
             sc = new ShellCommand(this.shellRot13,
-                                  "rot13",
-                                  "<string> - Does rot13 obfuscation on <string>.");
+                "rot13",
+                "<string> - Does rot13 obfuscation on <string>.");
             this.commandList[this.commandList.length] = sc;
 
             // prompt <string>
@@ -91,6 +91,24 @@ module TSOS {
             sc = new ShellCommand(this.shellBond,
                 "bond",
                 "- Bond. James Bond.");
+            this.commandList[this.commandList.length] = sc;
+
+            // bsod
+            sc = new ShellCommand(this.shellBSOD,
+                "bsod",
+                "- Breaks the OS displaying the BSOD.");
+            this.commandList[this.commandList.length] = sc;
+
+            // load
+            sc = new ShellCommand(this.shellLoad,
+                "load",
+                "- Validates the user's code is in hexadecimal.");
+            this.commandList[this.commandList.length] = sc;
+
+            // status
+            sc = new ShellCommand(this.shellStatus,
+                "status",
+                "- Updates the status message in taskbar.");
             this.commandList[this.commandList.length] = sc;
 
             // ps  - list the running processes and their IDs
@@ -187,6 +205,33 @@ module TSOS {
             return retVal;
         }
 
+        public autoComplete(text: string): string {
+            let retVal = "";
+            let numMatches = 0;
+            // Go through each command and check character by character
+            // if the current text matches any commands. 'numMatches' is used
+            // to store the current retVal's number of matches. If a different command
+            // has a higher number of matches, it will be replaced with retVal.
+            for (let i = 0; i < this.commandList.length; i++) {
+                let cmd = this.commandList[i].getCmdName();
+                console.log("Command: " + cmd);
+                for (let idx = 0, currMatches = 0; idx < text.length; idx++) {
+                    console.log("Checking if buffer text: " + text.charAt(idx) + " == command text: " + cmd.charAt(idx));
+                    if (cmd.charAt(idx) === text.charAt(idx)) {
+                        currMatches++;
+                        if (numMatches <= currMatches) {
+                            numMatches = currMatches;
+                            retVal = cmd;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+            return retVal;
+        }
+
+
         //
         // Shell Command Functions. Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
@@ -210,14 +255,14 @@ module TSOS {
         }
 
         public shellApology() {
-           if (_SarcasticMode) {
-              _StdOut.putText("I think we can put our differences behind us.");
-              _StdOut.advanceLine();
-              _StdOut.putText("For science . . . You monster.");
-              _SarcasticMode = false;
-           } else {
-              _StdOut.putText("For what?");
-           }
+            if (_SarcasticMode) {
+                _StdOut.putText("I think we can put our differences behind us.");
+                _StdOut.advanceLine();
+                _StdOut.putText("For science . . . You monster.");
+                _SarcasticMode = false;
+            } else {
+                _StdOut.putText("For what?");
+            }
         }
 
         // Although args is unused in some of these functions, it is always provided in the 
@@ -235,14 +280,14 @@ module TSOS {
         }
 
         public shellShutdown(args: string[]) {
-             _StdOut.putText("Shutting down...");
-             // Call Kernel shutdown routine.
+            _StdOut.putText("Shutting down...");
+            // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed. If possible. Not a high priority. (Damn OCD!)
         }
 
-        public shellCls(args: string[]) {         
-            _StdOut.clearScreen();     
+        public shellCls(args: string[]) {
+            _StdOut.clearScreen();
             _StdOut.resetXY();
         }
 
@@ -269,7 +314,7 @@ module TSOS {
                         _StdOut.putText("Trace toggles the status of the OS tracer.");
                         break;
                     case "rot13":
-                        _StdOut.putText("No idea what this means at all."); // TODO: change this message.
+                        _StdOut.putText("Converts a string using the rot13 cipher.");
                         break;
                     case "prompt":
                         _StdOut.putText("Prompt changes the default character at the start of each line prompt.");
@@ -282,6 +327,15 @@ module TSOS {
                         break;
                     case "bond":
                         _StdOut.putText("Provides a random James Bond quote (Don't worry, there's no Craig).");
+                        break;
+                    case "bsod":
+                        _StdOut.putText("BSOD throws an OS Trap");
+                        break;
+                    case "load":
+                        _StdOut.putText("Validates that the user code is in hex.");
+                        break;
+                    case "status":
+                        _StdOut.putText("Updates the status message");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -318,7 +372,7 @@ module TSOS {
         public shellRot13(args: string[]) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
-                _StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) +"'");
+                _StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) + "'");
             } else {
                 _StdOut.putText("Usage: rot13 <string>  Please supply a string.");
             }
@@ -350,6 +404,43 @@ module TSOS {
                 "This never happened to the other fella.", "Beg your pardon. Forgot to knock.",
                 "World domination. Same old dream.", "Excuse my friend. She's just dead."];
             _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
+        }
+
+        public shellBSOD(args: string[]) {
+            _Kernel.krnTrapError("Blue screen of death");
+            const img = <CanvasImageSource>document.getElementById("bsod");
+            _DrawingContext.drawImage(img, 0, 0);
+            setTimeout(function () {
+                location.reload();
+            }, 5000);
+        }
+
+        public shellLoad(args: string[]) {
+            let acceptedValues = [" ", "\n", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+            let encounteredError = false;
+            let userCode = <HTMLInputElement>document.getElementById("taProgramInput");
+            // Iterate through chars in input element and verify characters are valid
+            for (let i = 0; i < userCode.value.length; i++) {
+                console.log("Validating char: " + userCode.value.toLowerCase().charAt(i));
+                if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
+                    console.log("Index of error: " + acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)));
+                    _StdOut.putText("This code cannot be read.");
+                    encounteredError = true;
+                    break;
+                }
+            }
+            if (!encounteredError) _StdOut.putText("This code cannot be read.");
+        }
+
+        public shellStatus(args: string[]) {
+            if (args.length > 0) {
+                _Status = "";
+                args.forEach(function(arg){
+                    _Status = _Status + " " + arg;
+                });
+            } else {
+                _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
         }
     }
 

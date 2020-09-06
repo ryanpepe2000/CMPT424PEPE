@@ -8,6 +8,9 @@ var TSOS;
             this.command = command;
             this.description = description;
         }
+        ShellCommand.prototype.getCmdName = function () {
+            return this.command;
+        };
         return ShellCommand;
     }());
     TSOS.ShellCommand = ShellCommand;

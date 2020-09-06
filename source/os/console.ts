@@ -49,6 +49,10 @@ module TSOS {
                     this.deleteText(this.buffer.charAt(this.buffer.length - 1));
                     // Must remove the last character from the buffer. Note the use of "substring" rather than "substr"
                     this.buffer = this.buffer.substring(0, this.buffer.length-1);
+                } else if (chr === String.fromCharCode(9)){ // The TAB key
+                    this.deleteText(this.buffer);
+                    this.buffer = _OsShell.autoComplete(this.buffer) !== "" ? _OsShell.autoComplete(this.buffer) : this.buffer;
+                    this.putText(this.buffer);
                 } else if (chr === String.fromCharCode(38)){ // The Up arrow
                     this.deleteText(this.buffer);
                     this.buffer = _OsShell.history.getCMD();

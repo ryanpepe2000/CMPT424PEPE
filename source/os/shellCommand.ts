@@ -4,5 +4,9 @@ module TSOS {
                     public command: string = "",
                     public description: string = "") {
         }
+
+        public getCmdName(): string{
+            return this.command;
+        }
     }
 }

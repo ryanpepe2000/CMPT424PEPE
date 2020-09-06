@@ -54,6 +54,15 @@ var TSOS;
             // bond
             sc = new TSOS.ShellCommand(this.shellBond, "bond", "- Bond. James Bond.");
             this.commandList[this.commandList.length] = sc;
+            // bsod
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Breaks the OS displaying the BSOD.");
+            this.commandList[this.commandList.length] = sc;
+            // load
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates the user's code is in hexadecimal.");
+            this.commandList[this.commandList.length] = sc;
+            // status
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Updates the status message in taskbar.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -141,6 +150,32 @@ var TSOS;
             }
             return retVal;
         };
+        Shell.prototype.autoComplete = function (text) {
+            var retVal = "";
+            var numMatches = 0;
+            // Go through each command and check character by character
+            // if the current text matches any commands. 'numMatches' is used
+            // to store the current retVal's number of matches. If a different command
+            // has a higher number of matches, it will be replaced with retVal.
+            for (var i = 0; i < this.commandList.length; i++) {
+                var cmd = this.commandList[i].getCmdName();
+                console.log("Command: " + cmd);
+                for (var idx = 0, currMatches = 0; idx < text.length; idx++) {
+                    console.log("Checking if buffer text: " + text.charAt(idx) + " == command text: " + cmd.charAt(idx));
+                    if (cmd.charAt(idx) === text.charAt(idx)) {
+                        currMatches++;
+                        if (numMatches <= currMatches) {
+                            numMatches = currMatches;
+                            retVal = cmd;
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            return retVal;
+        };
         //
         // Shell Command Functions. Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
@@ -217,7 +252,7 @@ var TSOS;
                         _StdOut.putText("Trace toggles the status of the OS tracer.");
                         break;
                     case "rot13":
-                        _StdOut.putText("No idea what this means at all."); // TODO: change this message.
+                        _StdOut.putText("Converts a string using the rot13 cipher.");
                         break;
                     case "prompt":
                         _StdOut.putText("Prompt changes the default character at the start of each line prompt.");
@@ -230,6 +265,15 @@ var TSOS;
                         break;
                     case "bond":
                         _StdOut.putText("Provides a random James Bond quote (Don't worry, there's no Craig).");
+                        break;
+                    case "bsod":
+                        _StdOut.putText("BSOD throws an OS Trap");
+                        break;
+                    case "load":
+                        _StdOut.putText("Validates that the user code is in hex.");
+                        break;
+                    case "status":
+                        _StdOut.putText("Updates the status message");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -297,6 +341,42 @@ var TSOS;
                 "This never happened to the other fella.", "Beg your pardon. Forgot to knock.",
                 "World domination. Same old dream.", "Excuse my friend. She's just dead."];
             _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
+        };
+        Shell.prototype.shellBSOD = function (args) {
+            _Kernel.krnTrapError("Blue screen of death");
+            var img = document.getElementById("bsod");
+            _DrawingContext.drawImage(img, 0, 0);
+            setTimeout(function () {
+                location.reload();
+            }, 5000);
+        };
+        Shell.prototype.shellLoad = function (args) {
+            var acceptedValues = [" ", "\n", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+            var encounteredError = false;
+            var userCode = document.getElementById("taProgramInput");
+            // Iterate through chars in input element and verify characters are valid
+            for (var i = 0; i < userCode.value.length; i++) {
+                console.log("Validating char: " + userCode.value.toLowerCase().charAt(i));
+                if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
+                    console.log("Index of error: " + acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)));
+                    _StdOut.putText("This code cannot be read.");
+                    encounteredError = true;
+                    break;
+                }
+            }
+            if (!encounteredError)
+                _StdOut.putText("This code cannot be read.");
+        };
+        Shell.prototype.shellStatus = function (args) {
+            if (args.length > 0) {
+                _Status = "";
+                args.forEach(function (arg) {
+                    _Status = _Status + " " + arg;
+                });
+            }
+            else {
+                _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
         };
         return Shell;
     }());
