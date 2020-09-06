@@ -29,7 +29,7 @@ module TSOS {
 
         public krnKbdDispatchKeyPress(params) {
             // Parse the params.  TODO: Check that the params are valid and osTrapError if not.
-            if (params[0] == null || params[1] == null) _Kernel.krnTrapError("Invalid params"); //prevents unwanted inputs from making it into code
+            if (params[0] == null || params[1] == null) _Kernel.krnTrapError("Invalid parameters passed to keyboard"); //prevents unwanted inputs from making it into code
             var keyCode = params[0];
             var isShifted = params[1];
             _Kernel.krnTrace("Key code:" + keyCode + " shifted:" + isShifted);
@@ -46,7 +46,9 @@ module TSOS {
             } else if (((keyCode >= 48) && (keyCode <= 57)) ||   // digits
                         (keyCode == 32)                     ||   // space
                         (keyCode == 8)                      ||   // backspace
-                        (keyCode == 13)) {                       // enter
+                        (keyCode == 13)                     ||   // enter
+                        ((keyCode >= 37) && (keyCode <= 40))||   // Arrow keys
+                        keyCode == 25 ) {                        // Down arrow
                 // Check to see if it is necessary to convert chr to symbol
                 if (isShifted === true) {
                     switch (keyCode){

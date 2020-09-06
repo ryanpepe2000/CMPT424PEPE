@@ -14,6 +14,7 @@ var TSOS;
             // Properties
             this.promptStr = ">";
             this.commandList = [];
+            this.history = new CMDHistory();
             this.curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
             this.apologies = "[sorry]";
         }
@@ -300,4 +301,46 @@ var TSOS;
         return Shell;
     }());
     TSOS.Shell = Shell;
+    // Console history is used in traversal of previous commands.
+    // There are only four functions necessary in this class for complete functionality:
+    // Add, forward, backward, getCmd, and resetPos
+    var CMDHistory = /** @class */ (function () {
+        function CMDHistory() {
+            this.cmdList = [];
+            this.pos = -1;
+        }
+        CMDHistory.prototype.add = function (cmd) {
+            this.cmdList.push(cmd);
+            this.resetPos();
+        };
+        CMDHistory.prototype.forward = function () {
+            while (this.pos < this.cmdList.length - 1 && this.pos !== -1) {
+                if (this.cmdList[this.pos] != this.cmdList[this.pos + 1]) {
+                    this.pos++;
+                    break;
+                }
+                else {
+                    this.pos++;
+                }
+            }
+        };
+        CMDHistory.prototype.backward = function () {
+            while (this.pos > 0) {
+                if (this.cmdList[this.pos] != this.cmdList[this.pos - 1]) {
+                    this.pos--;
+                    break;
+                }
+                else {
+                    this.pos--;
+                }
+            }
+        };
+        CMDHistory.prototype.getCMD = function () {
+            return this.cmdList[this.pos];
+        };
+        CMDHistory.prototype.resetPos = function () {
+            this.pos = this.cmdList.length - 1;
+        };
+        return CMDHistory;
+    }());
 })(TSOS || (TSOS = {}));

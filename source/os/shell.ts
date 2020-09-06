@@ -7,12 +7,16 @@
           serious injuries may occur when trying to write your own Operating System.
    ------------ */
 
+
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 module TSOS {
     export class Shell {
         // Properties
         public promptStr = ">";
         public commandList = [];
+
+        public history = new CMDHistory();
+
         public curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         public apologies = "[sorry]";
 
@@ -346,6 +350,49 @@ module TSOS {
                 "This never happened to the other fella.", "Beg your pardon. Forgot to knock.",
                 "World domination. Same old dream.", "Excuse my friend. She's just dead."];
             _StdOut.putText(quotes[Math.floor((quotes.length - 1) * Math.random())]);
+        }
+    }
+
+    // Console history is used in traversal of previous commands.
+    // There are only four functions necessary in this class for complete functionality:
+    // Add, forward, backward, getCmd, and resetPos
+    class CMDHistory {
+        private cmdList = [];
+        private pos = -1;
+
+        public add(cmd: String){
+            this.cmdList.push(cmd);
+            this.resetPos();
+        }
+
+        public forward(): void{
+            while (this.pos < this.cmdList.length - 1 && this.pos !== -1){
+                if (this.cmdList[this.pos] != this.cmdList[this.pos+1]){
+                    this.pos++;
+                    break;
+                } else {
+                    this.pos++;
+                }
+            }
+        }
+
+        public backward(): void{
+            while (this.pos > 0) {
+                if (this.cmdList[this.pos] != this.cmdList[this.pos-1]){
+                    this.pos--;
+                    break;
+                } else {
+                    this.pos--;
+                }
+            }
+        }
+
+        public getCMD(): string{
+            return this.cmdList[this.pos];
+        }
+
+        private resetPos(): void{
+            this.pos = this.cmdList.length - 1;
         }
     }
 }

@@ -29,6 +29,8 @@ var TSOS;
         Console.prototype.resetXY = function () {
             this.currentXPosition = 0;
             this.currentYPosition = this.currentFontSize;
+            _Canvas.height = 500;
+            _Canvas.width = 500;
         };
         Console.prototype.handleInput = function () {
             while (_KernelInputQueue.getSize() > 0) {
@@ -38,14 +40,29 @@ var TSOS;
                 if (chr === String.fromCharCode(13)) { // the Enter key
                     // The enter key marks the end of a console command, so ...
                     // ... tell the shell ...
+                    if (this.buffer !== "") {
+                        _OsShell.history.add(this.buffer);
+                    }
                     _OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
                 }
                 else if (chr === String.fromCharCode(8)) { // the Backspace key
-                    this.deleteText(chr);
+                    this.deleteText(this.buffer.charAt(this.buffer.length - 1));
                     // Must remove the last character from the buffer. Note the use of "substring" rather than "substr"
                     this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                }
+                else if (chr === String.fromCharCode(38)) { // The Up arrow
+                    this.deleteText(this.buffer);
+                    this.buffer = _OsShell.history.getCMD();
+                    _OsShell.history.backward();
+                    this.putText(this.buffer);
+                }
+                else if (chr === String.fromCharCode(40)) { // The Down arrow
+                    _OsShell.history.forward();
+                    this.deleteText(this.buffer);
+                    this.buffer = _OsShell.history.getCMD();
+                    this.putText(this.buffer);
                 }
                 else {
                     // This is a "normal" character, so ...
@@ -85,7 +102,7 @@ var TSOS;
                 if (this.currentXPosition <= 0) {
                     this.retreatLine();
                 }
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 // Must update current x pos for next chr input
                 this.currentXPosition = this.currentXPosition - offset;
                 // Height of rectangle is irrelevant because there will never be text beneath the current location
@@ -103,6 +120,7 @@ var TSOS;
                 _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
                 _FontHeightMargin;
             // TODO: Handle scrolling. (iProject 1)
+            this.scrollCanvas();
         };
         Console.prototype.retreatLine = function () {
             this.currentXPosition = 0;
@@ -110,13 +128,31 @@ var TSOS;
             // the x position must be appended by the length of the prompt ('>' by default)
             if (this.buffer.length < 100)
                 this.currentXPosition += _DrawingContext
-                    .measureText(this.currentFont, this.currentFontSize, new TSOS.Shell().promptStr);
+                    .measureText(this.currentFont, this.currentFontSize, _OsShell.promptStr);
             for (var idx = 0; idx < this.buffer.length; idx++) {
                 this.currentXPosition += _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(idx));
             }
             this.currentYPosition -= (_DefaultFontSize +
                 _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
                 _FontHeightMargin);
+        };
+        Console.prototype.scrollCanvas = function () {
+            // We will save a copy of the current canvas status, and create a new canvas with a larger height
+            if (this.currentYPosition > _Canvas.height - _FontHeightMargin) {
+                // Copies current canvas state to new canvas
+                var canvasCopy = document.getElementById("hidden_canvas");
+                canvasCopy.height = _Canvas.height;
+                canvasCopy.width = _Canvas.width;
+                var canvasContextCopy = canvasCopy.getContext('2d');
+                canvasContextCopy.drawImage(_Canvas, 0, 0);
+                // Clears original Canvas and increases height by 500.
+                _DrawingContext.clearRect(0, 0, _Canvas.width, _Canvas.height);
+                _Canvas.height += (2 * (_DefaultFontSize +
+                    _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                    _FontHeightMargin));
+                _DrawingContext.drawImage(canvasCopy, 0, 0);
+                _Canvas.parentElement.scroll(this.currentXPosition, this.currentYPosition);
+            }
         };
         return Console;
     }());
