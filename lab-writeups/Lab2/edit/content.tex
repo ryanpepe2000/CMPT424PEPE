@@ -1,0 +1,37 @@
+%-----------------------------------------------------------------------------------------------------
+%TABLE OF CONTENTS (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD TABLE OF CONTENTS)
+%-----------------------------------------------------------------------------------------------------
+\tableofcontents 
+\newpage
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%REPORT TEXT
+%-----------------------------------------------------------------------------------------------------
+%\section{Introduction}
+%    \lipsum[1,1]
+\section{Questions}
+    \begin{enumerate}
+        \item How is your console like the ancient TTY subsystem in Unix as described in www.linusakesson.net?
+        \item[] The console in THaNatOS is quite similar to the TTY subsystem in Unix as described by the provided article. For instance, the subsystem in Unix uses a keyboard interrupt process that writes to a buffer. This buffer is written to the screen on a CPU clock cycle and is deleted in a similar fashion to the backspace that I implemented. Additionally, these interrupts are essentially a mechanism for the user to communicate asynchronously with a process through the kernel. The buffer in the THaNatOS system acts as the "pseudo terminal" described in the article. In the Unix subsystem, there is a "frame buffer" that writes to a VGA display; however, in my system, the system buffer is written to an HTML canvas. 
+    \end{enumerate}
+%\section{Conclusion}
+%    \lipsum[4-4] %dummy text, replace with original text
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%BIBLIOGRAPHY (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD BIBLIOGRAPHY)
+%-----------------------------------------------------------------------------------------------------
+%
+%\begin{thebibliography}{}%
+%
+%\bibitem{reference_label1}
+%{2.Author}. \textit{1. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\bibitem{reference_label2}
+%{2.Author}. \textit{2. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\end{thebibliography}
+%-----------------------------------------------------------------------------------------------------
