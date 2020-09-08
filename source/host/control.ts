@@ -47,9 +47,15 @@ module TSOS {
             if (typeof Glados === "function") {
                 // function Glados() is here, so instantiate Her into
                 // the global (and properly capitalized) _GLaDOS variable.
+                // the global (and properly capitalized) _GLaDOS variable.
                 _GLaDOS = new Glados();
                 _GLaDOS.init();
             }
+        }
+
+        public static resetCanvas(): void{
+            _Canvas.height = 500;
+            _Canvas.width = 500;
         }
 
         public static hostLog(msg: string, source: string = "?"): void {

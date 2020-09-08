@@ -41,9 +41,14 @@ var TSOS;
             if (typeof Glados === "function") {
                 // function Glados() is here, so instantiate Her into
                 // the global (and properly capitalized) _GLaDOS variable.
+                // the global (and properly capitalized) _GLaDOS variable.
                 _GLaDOS = new Glados();
                 _GLaDOS.init();
             }
+        };
+        Control.resetCanvas = function () {
+            _Canvas.height = 500;
+            _Canvas.width = 500;
         };
         Control.hostLog = function (msg, source) {
             if (source === void 0) { source = "?"; }

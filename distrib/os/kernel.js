@@ -151,7 +151,12 @@ var TSOS;
         };
         Kernel.prototype.krnTrapError = function (msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
-            // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
+            var img = document.getElementById("bsod");
+            TSOS.Control.resetCanvas();
+            _DrawingContext.drawImage(img, 0, 0);
+            setTimeout(function () {
+                location.reload();
+            }, 5000);
             this.krnShutdown();
         };
         return Kernel;

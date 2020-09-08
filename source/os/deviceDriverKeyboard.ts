@@ -7,7 +7,10 @@
 module TSOS {
 
     // Extends DeviceDriver
+
     export class DeviceDriverKeyboard extends DeviceDriver {
+        public symbolList: AsciiMap = new AsciiMap();
+        public shiftedList: AsciiMap = new AsciiMap();
 
         constructor() {
             // Override the base method pointers.
@@ -17,6 +20,16 @@ module TSOS {
             // super(this.krnKbdDriverEntry, this.krnKbdDispatchKeyPress);
             // So instead...
             super();
+
+            // Populate symbol list and shifted list
+            // key --> ASCII code string
+            // val --  Character string
+            this.symbolList = this.symbolList.set(222, "'").set(188, ",").set(189, "-").set(190, ".").set(191, "/").set(186,";").set(187, "=")
+                .set(219,"[").set(220,"\\").set(221,"]").set(176, "`");
+            this.shiftedList = this.shiftedList.set(48,")").set(49,"!").set(50,"@").set(51,"#").set(52,"$").set(53,"%")
+                .set(54,"^").set(55,"&").set(56,"*").set(57,"(").set(222, "\"").set(188, "<").set(189, "_").set(190, ">")
+                .set(191, "?").set(186,":").set(187, "+").set(219,"{").set(220,"|").set(221,"}").set(176, "~");
+
             this.driverEntry = this.krnKbdDriverEntry;
             this.isr = this.krnKbdDispatchKeyPress;
         }
@@ -48,50 +61,58 @@ module TSOS {
                         (keyCode == 8)                      ||   // backspace
                         (keyCode == 9)                      ||   // tab
                         (keyCode == 13)                     ||   // enter
-                        ((keyCode >= 37) && (keyCode <= 40))||   // Arrow keys
-                        keyCode == 25 ) {                        // Down arrow
+                        this.symbolList.has(keyCode)        ||   // Every symbol on traditional keyboard
+                        (this.shiftedList.has(keyCode) && isShifted)) {         // All characters that should be shifted
                 // Check to see if it is necessary to convert chr to symbol
+                console.log("Long statement: " + chr);
                 if (isShifted === true) {
-                    switch (keyCode){
-                        case 48: // 0 key
-                            chr = ")";
-                            break;
-                        case 49: //1 key
-                            chr = "!";
-                            break;
-                        case 50: // 2 key
-                            chr = "@";
-                            break;
-                        case 51: // 3 key
-                            chr = "#";
-                            break;
-                        case 52: // 4 key
-                            chr = "$";
-                            break;
-                        case 53: // 5 key
-                            chr = "%";
-                            break;
-                        case 54: // 6 key
-                            chr = "^";
-                            break;
-                        case 55: // 7 key
-                            chr = "&";
-                            break;
-                        case 56: // 8 key
-                            chr = "*";
-                            break;
-                        case 57: // 9 key
-                            chr = "(";
-                            break;
-                        default:
-                            chr = String.fromCharCode(keyCode);
-                            break;
-                    }
+                    chr = this.shiftedList.get(keyCode);
+                } else if (this.symbolList.has(keyCode)){
+                    chr = this.symbolList.get(keyCode);
                 } else {
                     chr = String.fromCharCode(keyCode);
                 }
                 _KernelInputQueue.enqueue(chr);
+            } else if ((keyCode == 38) || (keyCode == 40)){ // Arrow keys
+                console.log("Arrow Statement code: " + chr);
+                switch (keyCode){
+                    case 38:
+                        chr = "up"; // Setting to word 'up' because of interference with js chr 38
+                        break;
+                    case 40:
+                        chr = "down"; // Setting to word 'down' because of interference with js chr 38
+                        break;
+                }
+                _KernelInputQueue.enqueue(chr);
             }
+        }
+    }
+
+    class AsciiMap{
+        public key: number[] = [];
+        public val: string[] = [];
+        constructor() {}
+
+        public set(key: number, val: string): AsciiMap {
+            if (!this.has(key)) {
+                this.key[this.key.length] = key;
+                this.val[this.val.length] = val;
+            }
+            return this;
+        }
+
+        public get(key:number): string{
+            for (let i = 0; i < this.key.length; i++){
+                if (this.key[i] === key) return this.val[i];
+            }
+            return null;
+        }
+
+        public has(key:number): boolean{
+            for (let i = 0; i < this.key.length; i++){
+                if (this.key[i] === key) return true;
+            }
+            return false;
         }
     }
 }

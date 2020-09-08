@@ -387,7 +387,7 @@ module TSOS {
         }
 
         public shellDate(args: string[]) {
-            _StdOut.putText("Current Date: " + new Date() + ".");
+            _StdOut.putText("Current Date: " + new Date().toLocaleString() + ".");
         }
 
         public shellWhereAmI(args: string[]) {
@@ -408,11 +408,6 @@ module TSOS {
 
         public shellBSOD(args: string[]) {
             _Kernel.krnTrapError("Blue screen of death");
-            const img = <CanvasImageSource>document.getElementById("bsod");
-            _DrawingContext.drawImage(img, 0, 0);
-            setTimeout(function () {
-                location.reload();
-            }, 5000);
         }
 
         public shellLoad(args: string[]) {
@@ -420,16 +415,17 @@ module TSOS {
             let encounteredError = false;
             let userCode = <HTMLInputElement>document.getElementById("taProgramInput");
             // Iterate through chars in input element and verify characters are valid
-            for (let i = 0; i < userCode.value.length; i++) {
-                console.log("Validating char: " + userCode.value.toLowerCase().charAt(i));
-                if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
-                    console.log("Index of error: " + acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)));
-                    _StdOut.putText("This code cannot be read.");
-                    encounteredError = true;
-                    break;
+            if (userCode.value.length <= 0) encounteredError = true;
+            if (!encounteredError) {
+                for (let i = 0; i < userCode.value.length; i++) {
+                    if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
+                        encounteredError = true;
+                        break;
+                    }
                 }
             }
-            if (!encounteredError) _StdOut.putText("This code cannot be read.");
+            if (!encounteredError) _StdOut.putText("Program loaded...");
+            else _StdOut.putText("This code cannot be read.");
         }
 
         public shellStatus(args: string[]) {

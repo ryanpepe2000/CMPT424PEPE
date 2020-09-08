@@ -29,8 +29,7 @@ var TSOS;
         Console.prototype.resetXY = function () {
             this.currentXPosition = 0;
             this.currentYPosition = this.currentFontSize;
-            _Canvas.height = 500;
-            _Canvas.width = 500;
+            TSOS.Control.resetCanvas();
         };
         Console.prototype.handleInput = function () {
             while (_KernelInputQueue.getSize() > 0) {
@@ -57,13 +56,13 @@ var TSOS;
                     this.buffer = _OsShell.autoComplete(this.buffer) !== "" ? _OsShell.autoComplete(this.buffer) : this.buffer;
                     this.putText(this.buffer);
                 }
-                else if (chr === String.fromCharCode(38)) { // The Up arrow
+                else if (chr === "up") { // The Up arrow
                     this.deleteText(this.buffer);
                     this.buffer = _OsShell.history.getCMD();
                     _OsShell.history.backward();
                     this.putText(this.buffer);
                 }
-                else if (chr === String.fromCharCode(40)) { // The Down arrow
+                else if (chr === "down") { // The Down arrow
                     _OsShell.history.forward();
                     this.deleteText(this.buffer);
                     this.buffer = _OsShell.history.getCMD();

@@ -326,7 +326,7 @@ var TSOS;
             }
         };
         Shell.prototype.shellDate = function (args) {
-            _StdOut.putText("Current Date: " + new Date() + ".");
+            _StdOut.putText("Current Date: " + new Date().toLocaleString() + ".");
         };
         Shell.prototype.shellWhereAmI = function (args) {
             _StdOut.putText("Find a map dummy.");
@@ -344,27 +344,25 @@ var TSOS;
         };
         Shell.prototype.shellBSOD = function (args) {
             _Kernel.krnTrapError("Blue screen of death");
-            var img = document.getElementById("bsod");
-            _DrawingContext.drawImage(img, 0, 0);
-            setTimeout(function () {
-                location.reload();
-            }, 5000);
         };
         Shell.prototype.shellLoad = function (args) {
             var acceptedValues = [" ", "\n", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
             var encounteredError = false;
             var userCode = document.getElementById("taProgramInput");
             // Iterate through chars in input element and verify characters are valid
-            for (var i = 0; i < userCode.value.length; i++) {
-                console.log("Validating char: " + userCode.value.toLowerCase().charAt(i));
-                if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
-                    console.log("Index of error: " + acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)));
-                    _StdOut.putText("This code cannot be read.");
-                    encounteredError = true;
-                    break;
+            if (userCode.value.length <= 0)
+                encounteredError = true;
+            if (!encounteredError) {
+                for (var i = 0; i < userCode.value.length; i++) {
+                    if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
+                        encounteredError = true;
+                        break;
+                    }
                 }
             }
             if (!encounteredError)
+                _StdOut.putText("Program loaded...");
+            else
                 _StdOut.putText("This code cannot be read.");
         };
         Shell.prototype.shellStatus = function (args) {
