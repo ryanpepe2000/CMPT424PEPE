@@ -43,5 +43,13 @@ module TSOS {
             }
             return retVal;
         }
+
+        public static hexToDec(hexVal: number): number{
+            return Number.parseInt(hexVal.toString(10));
+        }
+
+        public static decToHex(decVal: number): number{
+            return Number.parseInt(decVal.toString(16));
+        }
     }
 }
