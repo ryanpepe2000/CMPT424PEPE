@@ -411,21 +411,30 @@ module TSOS {
         }
 
         public shellLoad(args: string[]) {
-            let acceptedValues = [" ", "\n", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
-            let encounteredError = false;
-            let userCode = <HTMLInputElement>document.getElementById("taProgramInput");
-            // Iterate through chars in input element and verify characters are valid
-            if (userCode.value.length <= 0) encounteredError = true;
-            if (!encounteredError) {
-                for (let i = 0; i < userCode.value.length; i++) {
-                    if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
-                        encounteredError = true;
-                        break;
-                    }
+            let acceptedValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+            let retVal = "";
+            let userCodeHTML = <HTMLInputElement>document.getElementById("taProgramInput");
+            let userCode = userCodeHTML.value.toUpperCase().split(" ").join("").split("\n").join(""); // Removes all spaces
+            let invalidCode: boolean = userCode.length <= 0; // Ensures code is not empty
+            // Iterate through chars in input element and verify characters are valid. Format properly
+            for (let idx = 0, counter = 0; idx < userCode.length; idx++){
+                if (acceptedValues.indexOf(userCode.charAt(idx)) !== -1){ // Character is a valid hex value
+                    retVal+= userCode.charAt(idx);
+                    counter++;
+                } else {
+                    invalidCode = true;
+                    break;
+                }
+                if (counter % 2 == 0){
+                    retVal += " ";
                 }
             }
-            if (!encounteredError) _StdOut.putText("Program loaded...");
-            else _StdOut.putText("This code cannot be read.");
+            if (invalidCode){
+                _StdOut.putText("Invalid Code");
+            } else {
+                userCodeHTML.value = retVal;
+                _StdOut.putText("Code loaded");
+            }
         }
 
         public shellStatus(args: string[]) {
