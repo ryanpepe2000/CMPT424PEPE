@@ -411,6 +411,16 @@ module TSOS {
         }
 
         public shellLoad(args: string[]) {
+            if (Shell.validateCode()){
+                _StdOut.putText("Process Loaded. PID: ")
+            } else {
+                _StdOut.putText("Invalid program syntax.")
+            }
+        }
+
+        // Helper method for shellLoad()
+        // Reformats user code and returns true if it is valid
+        private static validateCode(): boolean{
             let acceptedValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
             let retVal = "";
             let userCodeHTML = <HTMLInputElement>document.getElementById("taProgramInput");
@@ -430,12 +440,13 @@ module TSOS {
                 }
             }
             if (invalidCode){
-                _StdOut.putText("Invalid Code");
+                return false;
             } else {
                 userCodeHTML.value = retVal;
-                _StdOut.putText("Code loaded");
+                return true;
             }
         }
+
 
         public shellStatus(args: string[]) {
             if (args.length > 0) {

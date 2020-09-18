@@ -8,8 +8,8 @@
 module TSOS {
 
     export class Memory {
-
-        constructor(private memory: Array<string> = null) {
+        private memory: Array<string>;
+        constructor() {
             this.memory = new Array<string>(MEMORY_LENGTH);
         }
 

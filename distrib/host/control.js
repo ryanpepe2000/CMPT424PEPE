@@ -64,6 +64,7 @@ var TSOS;
             // Update the graphical taskbar
             var taTaskBar = document.getElementById("taTaskBar");
             taTaskBar.value = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
+            taTaskBar.childNodes.item(0).nodeValue = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
             // TODO in the future: Optionally update a log database or some streaming service.
         };
         //

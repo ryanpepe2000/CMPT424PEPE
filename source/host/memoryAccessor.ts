@@ -9,5 +9,13 @@ module TSOS {
     export class MemoryAccessor {
         constructor() {
         }
+
+        //public readByte(PC: number): string{
+        //    return _Memory.getMemory(PC);
+        //}
+
+        //public writeByte(address: number, value: string): void{
+        //    _Memory.setMemory(address, value);
+        //}
     }
 }

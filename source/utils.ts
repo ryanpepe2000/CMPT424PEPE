@@ -45,11 +45,11 @@ module TSOS {
         }
 
         public static hexToDec(hexVal: number): number{
-            return Number.parseInt(hexVal.toString(10));
+            return parseInt(hexVal.toString(10));
         }
 
         public static decToHex(decVal: number): number{
-            return Number.parseInt(decVal.toString(16));
+            return parseInt(decVal.toString(16));
         }
     }
 }

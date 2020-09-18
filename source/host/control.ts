@@ -74,7 +74,8 @@ module TSOS {
 
             // Update the graphical taskbar
             let taTaskBar = <HTMLInputElement> document.getElementById("taTaskBar");
-            taTaskBar.value = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
+            // Bootstrap caused weird bug that was setting taskBar's child node to the actual value
+            taTaskBar.childNodes.item(0).nodeValue = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
 
             // TODO in the future: Optionally update a log database or some streaming service.
         }

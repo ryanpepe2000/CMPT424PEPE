@@ -346,6 +346,16 @@ var TSOS;
             _Kernel.krnTrapError("Blue screen of death");
         };
         Shell.prototype.shellLoad = function (args) {
+            if (Shell.validateCode()) {
+                _StdOut.putText("Process Loaded. PID: ");
+            }
+            else {
+                _StdOut.putText("Invalid program syntax.");
+            }
+        };
+        // Helper method for shellLoad()
+        // Reformats user code and returns true if it is valid
+        Shell.validateCode = function () {
             var acceptedValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
             var retVal = "";
             var userCodeHTML = document.getElementById("taProgramInput");
@@ -366,11 +376,11 @@ var TSOS;
                 }
             }
             if (invalidCode) {
-                _StdOut.putText("Invalid Code");
+                return false;
             }
             else {
                 userCodeHTML.value = retVal;
-                _StdOut.putText("Code loaded");
+                return true;
             }
         };
         Shell.prototype.shellStatus = function (args) {

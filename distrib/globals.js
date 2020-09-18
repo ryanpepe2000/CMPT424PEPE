@@ -16,14 +16,15 @@ var CPU_CLOCK_INTERVAL = 100; // This is in ms (milliseconds) so 1000 = 1 second
 var TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 var KEYBOARD_IRQ = 1;
+var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
 // Hardware (host)
 var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
-var _Memory = TSOS.Memory;
-var _MemoryAccessor = TSOS.MemoryAccessor;
+var _Memory;
+var _MemoryAccessor;
 // Software (OS)
 var _MemoryManager = null;
 var _OSclock = 0; // Page 23.

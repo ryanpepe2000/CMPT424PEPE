@@ -7,16 +7,30 @@
 var TSOS;
 (function (TSOS) {
     var Memory = /** @class */ (function () {
-        function Memory(size, // Represents 256 bytes ins
-        memArray) {
-            if (size === void 0) { size = 0x100; }
-            if (memArray === void 0) { memArray = new Array(size); }
-            this.size = size;
-            this.memArray = memArray;
+        function Memory() {
+            this.memory = new Array(MEMORY_LENGTH);
         }
         Memory.prototype.init = function () {
-            for (var i = 0; i < this.size; i++) {
-                this.memArray[i] = 0x00;
+            for (var i = 0; i < this.memory.length; i++) {
+                this.memory[i] = "00";
+            }
+        };
+        Memory.prototype.getMemory = function (address) {
+            return this.memory[TSOS.Utils.hexToDec(address)];
+        };
+        Memory.prototype.setMemory = function (address, val) {
+            try {
+                this.memory[TSOS.Utils.hexToDec(address)] = val;
+            }
+            catch (e) {
+                _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
+                return false;
+            }
+            return true;
+        };
+        Memory.prototype.clearMemory = function () {
+            for (var i = 0; i < this.memory.length; i++) {
+                this.memory[i] = "00";
             }
         };
         return Memory;

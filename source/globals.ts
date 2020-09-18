@@ -28,53 +28,53 @@ const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 2
 //
 
 // Hardware (host)
-var _CPU: TSOS.Cpu;  // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
-var _Memory: TSOS.Memory;
-var _MemoryAccessor: TSOS.MemoryAccessor;
+let _CPU: TSOS.Cpu;  // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
+let _Memory: TSOS.Memory;
+let _MemoryAccessor: TSOS.MemoryAccessor;
 
 // Software (OS)
-var _MemoryManager: any = null;
+let _MemoryManager: any = null;
 
-var _OSclock: number = 0;  // Page 23.
+let _OSclock: number = 0;  // Page 23.
 
-var _Mode: number = 0;     // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
+let _Mode: number = 0;     // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
 
-var _Status: string = "Experiencing pain";
+let _Status: string = "Experiencing pain";
 
-var _Canvas: HTMLCanvasElement;          // Initialized in Control.hostInit().
-var _DrawingContext: any;                // = _Canvas.getContext("2d");  // Assigned here for type safety, but re-initialized in Control.hostInit() for OCD and logic.
-var _DefaultFontFamily: string = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
-var _DefaultFontSize: number = 13;
-var _FontHeightMargin: number = 4;       // Additional space added to font size when advancing a line.
+let _Canvas: HTMLCanvasElement;          // Initialized in Control.hostInit().
+let _DrawingContext: any;                // = _Canvas.getContext("2d");  // Assigned here for type safety, but re-initialized in Control.hostInit() for OCD and logic.
+let _DefaultFontFamily: string = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
+let _DefaultFontSize: number = 13;
+let _FontHeightMargin: number = 4;       // Additional space added to font size when advancing a line.
 
-var _Trace: boolean = true;              // Default the OS trace to be on.
+let _Trace: boolean = true;              // Default the OS trace to be on.
 
 // The OS Kernel and its queues.
-var _Kernel: TSOS.Kernel;
-var _KernelInterruptQueue: TSOS.Queue = null;
-var _KernelInputQueue: TSOS.Queue = null; 
-var _KernelBuffers = null; 
+let _Kernel: TSOS.Kernel;
+let _KernelInterruptQueue: TSOS.Queue = null;
+let _KernelInputQueue: TSOS.Queue = null;
+let _KernelBuffers = null;
 
 // Standard input and output
-var _StdIn:  TSOS.Console = null; 
-var _StdOut: TSOS.Console = null;
+let _StdIn:  TSOS.Console = null;
+let _StdOut: TSOS.Console = null;
 
 // UI
-var _Console: TSOS.Console;
-var _OsShell: TSOS.Shell;
+let _Console: TSOS.Console;
+let _OsShell: TSOS.Shell;
 
 // At least this OS is not trying to kill you. (Yet.)
-var _SarcasticMode: boolean = false;
+let _SarcasticMode: boolean = false;
 
 // Global Device Driver Objects - page 12
-var _krnKeyboardDriver: TSOS.DeviceDriverKeyboard  = null;
+let _krnKeyboardDriver: TSOS.DeviceDriverKeyboard  = null;
 
-var _hardwareClockID: number = null;
+let _hardwareClockID: number = null;
 
 // For testing (and enrichment)...
-var Glados: any = null;  // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
-var _GLaDOS: any = null; // If the above is linked in, this is the instantiated instance of Glados.
+let Glados: any = null;  // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
+let _GLaDOS: any = null; // If the above is linked in, this is the instantiated instance of Glados.
 
-var onDocumentLoad = function() {
+let onDocumentLoad = function() {
 	TSOS.Control.hostInit();
 };
