@@ -14,24 +14,21 @@ var TSOS;
             for (var i = 0; i < this.memory.length; i++) {
                 this.memory[i] = "00";
             }
+            TSOS.Control.initMemoryDisplay();
         };
         Memory.prototype.getMemory = function (address) {
-            return this.memory[TSOS.Utils.hexToDec(address)];
+            return this.memory[TSOS.Utils.removePad(address)];
         };
         Memory.prototype.setMemory = function (address, val) {
             try {
-                this.memory[TSOS.Utils.hexToDec(address)] = val;
+                this.memory[TSOS.Utils.decToHex(address)] = val;
+                TSOS.Control.updateMemoryDisplay(TSOS.Utils.decToHex(address));
             }
             catch (e) {
                 _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
                 return false;
             }
             return true;
-        };
-        Memory.prototype.clearMemory = function () {
-            for (var i = 0; i < this.memory.length; i++) {
-                this.memory[i] = "00";
-            }
         };
         return Memory;
     }());

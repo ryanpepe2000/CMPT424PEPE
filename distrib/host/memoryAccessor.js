@@ -9,6 +9,12 @@ var TSOS;
     var MemoryAccessor = /** @class */ (function () {
         function MemoryAccessor() {
         }
+        MemoryAccessor.prototype.readByte = function (address) {
+            return _Memory.getMemory(address);
+        };
+        MemoryAccessor.prototype.writeByte = function (address, value) {
+            return _Memory.setMemory(address, value);
+        };
         return MemoryAccessor;
     }());
     TSOS.MemoryAccessor = MemoryAccessor;

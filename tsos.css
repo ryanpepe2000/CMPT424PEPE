@@ -46,3 +46,9 @@ h3 {
   font-size: 8pt;
   text-align: center;
 }
+
+#memory{
+  display: block;
+  max-height: 200px;
+  overflow-y: auto;
+}

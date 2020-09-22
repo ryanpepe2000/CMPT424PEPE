@@ -9,5 +9,13 @@ module TSOS {
     export class MemoryManager {
         constructor() {
         }
+
+        public static memoryAvailable(programLength: number): boolean{
+            if (programLength > _Memory.memory.length) return false;
+            for (let i = 0; i < _Memory.memory.length; i++){
+                if (_Memory.getMemory(i.toString()) !== "00") return false;
+            }
+            return true;
+        }
     }
 }

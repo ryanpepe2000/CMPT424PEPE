@@ -12,45 +12,45 @@ var TSOS;
 (function (TSOS) {
     var ProcessManager = /** @class */ (function () {
         function ProcessManager(processes) {
-            if (processes === void 0) { processes = new Array(0); }
+            if (processes === void 0) { processes = new Array(); }
             this.processes = processes;
         }
-        ProcessManager.createProcess = function () {
-            var PID = this.getMaxPID() + 1;
-            this.processes[this.processes.length] = new ProcessControlBlock(PID);
-            return PID;
+        ProcessManager.prototype.createProcess = function () {
+            var pcb = new ProcessControlBlock(this.getNextPID());
+            this.processes[this.processes.length] = pcb;
+            return pcb;
         };
-        ProcessManager.getMaxPID = function () {
-            var max = -1;
+        ProcessManager.prototype.getPCB = function (pid) {
+            return this.processes[pid];
+        };
+        ProcessManager.prototype.getNextPID = function () {
+            var next = -1;
             for (var i = 0; i < this.processes.length; i++) {
-                if (this.processes[i] != null && this.processes[i].getPID() > max) {
-                    max = this.processes[i].getPID();
+                if (this.processes[i] != null && this.processes[i].pid > next) {
+                    next = this.processes[i].pid;
                 }
             }
-            return max;
+            return next + 1;
         };
         return ProcessManager;
     }());
     TSOS.ProcessManager = ProcessManager;
     var ProcessControlBlock = /** @class */ (function () {
-        function ProcessControlBlock(PID, PC, Acc, Xreg, Yreg, Zflag, state) {
-            if (PC === void 0) { PC = 0; }
-            if (Acc === void 0) { Acc = 0; }
-            if (Xreg === void 0) { Xreg = 0; }
-            if (Yreg === void 0) { Yreg = 0; }
-            if (Zflag === void 0) { Zflag = 0; }
+        function ProcessControlBlock(pid, pc, acc, xReg, yReg, zFlag, state) {
+            if (pc === void 0) { pc = 0; }
+            if (acc === void 0) { acc = 0; }
+            if (xReg === void 0) { xReg = 0; }
+            if (yReg === void 0) { yReg = 0; }
+            if (zFlag === void 0) { zFlag = 0; }
             if (state === void 0) { state = "Waiting"; }
-            this.PID = PID;
-            this.PC = PC;
-            this.Acc = Acc;
-            this.Xreg = Xreg;
-            this.Yreg = Yreg;
-            this.Zflag = Zflag;
+            this.pid = pid;
+            this.pc = pc;
+            this.acc = acc;
+            this.xReg = xReg;
+            this.yReg = yReg;
+            this.zFlag = zFlag;
             this.state = state;
         }
-        ProcessControlBlock.prototype.getPID = function () {
-            return this.PID;
-        };
         return ProcessControlBlock;
     }());
     TSOS.ProcessControlBlock = ProcessControlBlock;

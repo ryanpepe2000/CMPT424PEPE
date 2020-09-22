@@ -33,7 +33,10 @@ let _Memory: TSOS.Memory;
 let _MemoryAccessor: TSOS.MemoryAccessor;
 
 // Software (OS)
-let _MemoryManager: any = null;
+let _MemoryManager: TSOS.MemoryManager = null;
+
+// Process Implementations
+let _ProcessManager: TSOS.ProcessManager = null;
 
 let _OSclock: number = 0;  // Page 23.
 

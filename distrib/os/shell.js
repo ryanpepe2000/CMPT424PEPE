@@ -347,7 +347,19 @@ var TSOS;
         };
         Shell.prototype.shellLoad = function (args) {
             if (Shell.validateCode()) {
-                _StdOut.putText("Process Loaded. PID: ");
+                var userCode = document.getElementById("taProgramInput").value.split(" ");
+                if (TSOS.MemoryManager.memoryAvailable(userCode.length)) {
+                    var pcb = _ProcessManager.createProcess();
+                    TSOS.Control.updatePCBDisplay(pcb);
+                    // Use length -1 because split adds an extra "" element at end
+                    for (var i = 0; i < userCode.length - 1; i++) {
+                        _MemoryAccessor.writeByte(i, userCode[i]);
+                    }
+                    _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                }
+                else {
+                    _StdOut.putText("Valid Code. Memory is not currently available.");
+                }
             }
             else {
                 _StdOut.putText("Invalid program syntax.");
@@ -359,7 +371,7 @@ var TSOS;
             var acceptedValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
             var retVal = "";
             var userCodeHTML = document.getElementById("taProgramInput");
-            var userCode = userCodeHTML.value.toUpperCase().split(" ").join("").split("\n").join(""); // Removes all spaces
+            var userCode = userCodeHTML.value.toUpperCase().split(" ").join("").split("\n").join(""); // Removes all spaces and new lines
             var invalidCode = userCode.length <= 0; // Ensures code is not empty
             // Iterate through chars in input element and verify characters are valid. Format properly
             for (var idx = 0, counter = 0; idx < userCode.length; idx++) {
@@ -379,7 +391,12 @@ var TSOS;
                 return false;
             }
             else {
-                userCodeHTML.value = retVal;
+                if (userCode.length % 2 == 1) {
+                    userCodeHTML.value = retVal + "0";
+                }
+                else {
+                    userCodeHTML.value = retVal;
+                }
                 return true;
             }
         };

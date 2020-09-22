@@ -10,12 +10,12 @@ module TSOS {
         constructor() {
         }
 
-        //public readByte(PC: number): string{
-        //    return _Memory.getMemory(PC);
-        //}
+        public readByte(address: string): string{
+            return _Memory.getMemory(address);
+        }
 
-        //public writeByte(address: number, value: string): void{
-        //    _Memory.setMemory(address, value);
-        //}
+        public writeByte(address: number, value: string): boolean {
+            return _Memory.setMemory(address, value);
+        }
     }
 }

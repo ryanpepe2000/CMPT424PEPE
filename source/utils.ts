@@ -44,12 +44,30 @@ module TSOS {
             return retVal;
         }
 
-        public static hexToDec(hexVal: number): number{
-            return parseInt(hexVal.toString(10));
+        public static hexToDec(hexVal: string): number{
+            return parseInt("0x" + hexVal);
         }
 
-        public static decToHex(decVal: number): number{
-            return parseInt(decVal.toString(16));
+        public static decToHex(decVal: number): string{
+            return decVal.toString(16);
+        }
+
+        public static padHex(hexString:string, padAmt: number): string{
+            if (hexString == null) return null;
+            let retVal: string = hexString;
+            while(retVal.length < padAmt){
+                retVal = "0" + retVal;
+            }
+            return "0x" + retVal.toUpperCase();
+        }
+
+        public static removePad(hexString: string): string {
+            for (let i = 0; i < hexString.length; i++){
+                if (hexString.charAt(i) !== '0'){
+                    return hexString.substr(i).toLowerCase();
+                }
+            }
+            return "0";
         }
     }
 }

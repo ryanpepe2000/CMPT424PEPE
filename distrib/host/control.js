@@ -63,8 +63,13 @@ var TSOS;
             taLog.value = str + taLog.value;
             // Update the graphical taskbar
             var taTaskBar = document.getElementById("taTaskBar");
-            taTaskBar.value = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
-            taTaskBar.childNodes.item(0).nodeValue = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
+            taTaskBar.innerHTML = "";
+            var dateElement = document.createElement('p');
+            var statusElement = document.createElement('p');
+            dateElement.innerHTML = "Date: " + new Date().toLocaleString();
+            statusElement.innerHTML = "Status: " + _Status;
+            taTaskBar.appendChild(dateElement);
+            taTaskBar.appendChild(statusElement);
             // TODO in the future: Optionally update a log database or some streaming service.
         };
         //
@@ -85,6 +90,8 @@ var TSOS;
             _Memory = new TSOS.Memory();
             _Memory.init();
             _MemoryAccessor = new TSOS.MemoryAccessor();
+            // Create and initialize the process manager
+            _ProcessManager = new TSOS.ProcessManager();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -106,6 +113,87 @@ var TSOS;
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
+        };
+        // Initialize and populate table to display memory
+        Control.initMemoryDisplay = function () {
+            var table = document.getElementById("memory");
+            table.innerHTML = "";
+            var row = null;
+            var cell = null;
+            for (var i = 0; i < _Memory.memory.length; i += 0x8) {
+                row = document.createElement('tr');
+                row.id = "row-0x" + TSOS.Utils.decToHex(i);
+                // Create element to preface the row
+                cell = document.createElement('td');
+                cell.id = "label-" + TSOS.Utils.decToHex(i);
+                cell.innerHTML = TSOS.Utils.padHex(TSOS.Utils.decToHex(i), 2);
+                cell.className += "memory-row";
+                row.appendChild(cell);
+                // Need to keep track of current search index and append 8 cells with proper id
+                // to the table
+                for (var j = i; j < i + 8; j += 0x1) {
+                    cell = document.createElement('td');
+                    cell.id = "cell-" + TSOS.Utils.decToHex(j);
+                    cell.innerHTML = _Memory.getMemory(j.toString());
+                    cell.className += "memory-row";
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+        };
+        // Updates a given memory address with the proper memory item loaded at that address
+        Control.updateMemoryDisplay = function (address) {
+            var idx = document.getElementById("cell-" + address);
+            idx.innerHTML = _Memory.getMemory(address);
+        };
+        // Updates the process control block table and adds a new row per process
+        Control.updatePCBDisplay = function (pcb) {
+            var table = document.getElementById('pcb');
+            var row = document.createElement('tr');
+            row.id = "pcb-" + pcb.pid;
+            var cell = document.createElement('td');
+            cell.innerHTML = pcb.pid + "";
+            cell.id = "pcb-" + pcb.pid + "-pid";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-pc";
+            cell.innerHTML = pcb.pc + "";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-acc";
+            cell.innerHTML = pcb.acc + "";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-xreg";
+            cell.innerHTML = pcb.xReg + "";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-yreg";
+            cell.innerHTML = pcb.yReg + "";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-zflag";
+            cell.innerHTML = pcb.zFlag + "";
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.id = "pcb-" + pcb.pid + "-state";
+            cell.innerHTML = pcb.state + "";
+            row.appendChild(cell);
+            table.appendChild(row);
+        };
+        Control.clearPCBDisplay = function () {
+            var table = document.getElementById('pcb');
+            table.innerHTML = ' <table id="pcb" class="table table-responsive text-center">' +
+                '   <tr>' +
+                '    <th>PID</th>' +
+                '    <th>PC</th>' +
+                '    <th>Acc</th>' +
+                '    <th>XReg</th>' +
+                '    <th>YReg</th>' +
+                '    <th>ZFlag</th>' +
+                '    <th>Status</th>' +
+                '   </tr>' +
+                ' </table>';
         };
         return Control;
     }());

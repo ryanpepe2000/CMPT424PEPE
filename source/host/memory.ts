@@ -8,7 +8,7 @@
 module TSOS {
 
     export class Memory {
-        private memory: Array<string>;
+        memory: Array<string>;
         constructor() {
             this.memory = new Array<string>(MEMORY_LENGTH);
         }
@@ -17,26 +17,22 @@ module TSOS {
             for (let i = 0; i < this.memory.length; i++){
                 this.memory[i] = "00";
             }
+            Control.initMemoryDisplay();
         }
 
-        getMemory(address:number): string{
-            return this.memory[Utils.hexToDec(address)];
+        getMemory(address: string): string{
+            return this.memory[Utils.removePad(address)];
         }
 
         setMemory(address:number, val: string): boolean{
             try{
-                this.memory[Utils.hexToDec(address)] = val;
+                this.memory[Utils.decToHex(address)] = val;
+                Control.updateMemoryDisplay(Utils.decToHex(address));
             } catch (e){
                 _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
                 return false;
             }
             return true;
-        }
-
-        clearMemory(): void {
-            for (let i = 0; i < this.memory.length; i++){
-                this.memory[i] = "00";
-            }
         }
     }
 }

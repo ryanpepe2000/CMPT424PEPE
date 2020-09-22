@@ -27,6 +27,8 @@ var _Memory;
 var _MemoryAccessor;
 // Software (OS)
 var _MemoryManager = null;
+// Process Implementations
+var _ProcessManager = null;
 var _OSclock = 0; // Page 23.
 var _Mode = 0; // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
 var _Status = "Experiencing pain";

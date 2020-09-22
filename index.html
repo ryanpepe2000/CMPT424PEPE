@@ -19,6 +19,7 @@
     <script type="text/javascript" src="distrib/host/cpu.js"></script>
     <script type="text/javascript" src="distrib/host/memory.js"></script>
     <script type="text/javascript" src="distrib/host/memoryAccessor.js"></script>
+    <script type="text/javascript" src="distrib/host/instructionList.js"></script>
 
     <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
     <script type="text/javascript" src="distrib/os/interrupt.js"></script>
@@ -33,14 +34,14 @@
     <script type="text/javascript" src="distrib/os/kernel.js"></script>
     <script type="text/javascript" src="distrib/os/processManager.js"></script>
     <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
-
+s
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
     <!-- Other Routines -->
     <script type="text/javascript" src="distrib/utils.js"></script>
     <!-- Uncomment the line below to enable GLaDOS testing. -->
-    <script type="text/javascript" src="test/glados-ip1.js"></script>
+    <!--<script type="text/javascript" src="test/glados-ip1.js"></script>-->
 
 </head>
 
@@ -57,9 +58,9 @@
                     <h4 class="nav-link font-weight-bold">Thanatos</h4>
                 </li>
                 <li>
-                    <div class="card">
-                        <div class="card-body">
-                            <p id="taTaskBar">Death is Inevitable</p>
+                    <div class="card" style="height: 100px">
+                        <div class="card-body" id="taTaskBar">
+                            <p>Death is Inevitable</p>
                         </div>
                     </div>
                 </li>
@@ -107,6 +108,7 @@
             </nav>
         </div>
     </div>
+
     <!-- Page Content -->
     <div id="divContent" class="row">
         <!-- First Column -->
@@ -114,7 +116,12 @@
             <div class="row">
                 <div class="col-md-12">
                     <!-- CLI -->
-                    <div id="divConsole" class="col-sm-8" style="margin:4px; max-width:520px; max-height:500px; float:left; overflow-x:hidden; overflow-y: auto;">
+                    <div id="divConsole" class="col-sm-8" style="margin:4px;
+                                                                max-width:520px;
+                                                                max-height:500px;
+                                                                float:left;
+                                                                overflow-x:hidden;
+                                                                overflow-y: auto;">
                         <canvas id="display"
                                 width="500px"
                                 height="550px"
@@ -131,43 +138,63 @@
         <div class="col-md-4">
             <!-- Host Log -->
             <div class="row">
-                <div id="divLog" class="col-sm-4" >
-                    <label for="taHostLog">Host Log</label><br>
-                    <textarea name="taHostLog"
-                         id  ="taHostLog"
-                         rows="26"
-                         cols="48"
-                    ></textarea>
+                <div id="divLog" class="card" style="width: 100%">
+                    <div class="card-header">Host</div>
+                    <div class="card-body">
+                        <label for="taHostLog" hidden></label>
+                        <textarea name="taHostLog"
+                                  id  ="taHostLog"
+                                  rows="7"
+                                  style="width:100%"
+                        ></textarea>
+                    </div>
                 </div>
             </div>
+            <br>
             <!-- User Input -->
             <div class="row">
-                <div id="divUserProgramInput" class="col-sm-4" >
-                    <label for="taProgramInput">User Input</label><br>
-                    <textarea name="taProgramInput"
-                              id  ="taProgramInput"
-                              rows="8"
-                              cols="48"
-                    ></textarea>
+                <div id="divUserProgramInput" class="card" style="width: 100%">
+                    <div class="card-header">User Input</div>
+                    <div class="card-body">
+                        <label for="taProgramInput" hidden></label>
+                        <textarea name="taProgramInput"
+                                  class="form-control"
+                                  id  ="taProgramInput"
+                                  rows="4"
+                                  style="width:100% "
+                        ></textarea>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Third Column-->
         <div class="col-md-4">
-            <!-- Memory (Duplicate from * to * for new additions -->
-            <!-- * -->
-            <div class="row">
-                <div id="divMemory" class="col-md-12">
-                    <label for="taMemory">Memory</label><br>
-                    <textarea name="taMemory"
-                              id = "taMemory"
-                              rows="2"
-                              cols="26"
-                              style="height: 75px; width: 300px"
-                    ></textarea>
+            <!-- Memory -->
+            <div class="card">
+                <div class="card-header">Memory</div>
+                <div class="card-body">
+                    <table id="memory" class="table table-responsive text-center">
+                    </table>
                 </div>
             </div>
-            <!-- * -->
+            <br>
+            <!-- PCB -->
+            <div class="card">
+                <div class="card-header">Process Control Blocks</div>
+                <div class="card-body">
+                    <table id="pcb" class="table table-responsive text-center">
+                        <tr>
+                            <th>PID</th>
+                            <th>PC</th>
+                            <th>Acc</th>
+                            <th>XReg</th>
+                            <th>YReg</th>
+                            <th>ZFlag</th>
+                            <th>Status</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
         <!-- Image used in BSOD -->
         <div style="display:none;">
