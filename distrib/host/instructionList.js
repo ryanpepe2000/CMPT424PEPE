@@ -65,6 +65,23 @@ var TSOS;
                 this["break"]();
             _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         };
+        InstructionFunction.systemCall = function () {
+            var retVal = "";
+            if (_CPU.getXReg() === 1) {
+                retVal += _CPU.getXReg();
+            }
+            else if (_CPU.getXReg() === 2) {
+                var index = _CPU.getYReg();
+                var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(index));
+                while (val !== "0" && val !== "00") {
+                    retVal += String.fromCharCode(TSOS.Utils.hexToDec(val));
+                    index++;
+                    val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(index));
+                    console.log("Value: " + val);
+                }
+            }
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PRINT_PROCESS_IRQ, [retVal]));
+        };
         return InstructionFunction;
     }());
     TSOS.InstructionFunction = InstructionFunction;

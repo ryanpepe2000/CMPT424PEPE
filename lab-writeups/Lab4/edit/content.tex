@@ -1,0 +1,37 @@
+%-----------------------------------------------------------------------------------------------------
+%TABLE OF CONTENTS (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD TABLE OF CONTENTS)
+%-----------------------------------------------------------------------------------------------------
+\tableofcontents 
+\newpage
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%REPORT TEXT
+%-----------------------------------------------------------------------------------------------------
+%\section{Introduction}
+%    \lipsum[1,1]
+\section{Questions}
+    \begin{enumerate}
+        \item What is the relationship between a guest operating system and a host operating system in a system like VMware? What factors need to be considered in choosing the host operating system?
+        \item[] The relationship between a guest operating system and a host operating system is simple -- a guest operating system is an OS that relies on the the functionalities of the host operating system. More specifically, a guest OS is a separate layer in the hierarchy above the host operating system. It uses the host OS's system call interface to communicate with the Kernel. When choosing the host operating system, there are countless factors that need to be taken into account. First and foremost, the the host OS should definitely have a well-implemented system call interface. This is crucial for the computer to be understood by users. Additionally, the host OS should have an effective implementation of CPU scheduling so processes called by the Kernel and designed by the user are executed in the best possible sequence.  
+    \end{enumerate}
+%\section{Conclusion}
+%    \lipsum[4-4] %dummy text, replace with original text
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%BIBLIOGRAPHY (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD BIBLIOGRAPHY)
+%-----------------------------------------------------------------------------------------------------
+%
+%\begin{thebibliography}{}%
+%
+%\bibitem{reference_label1}
+%{2.Author}. \textit{1. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\bibitem{reference_label2}
+%{2.Author}. \textit{2. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\end{thebibliography}
+%-----------------------------------------------------------------------------------------------------

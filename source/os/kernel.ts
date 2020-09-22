@@ -127,6 +127,9 @@ module TSOS {
                 case BREAK_PROCESS_IRQ:
                     this.krnBreakProcess(params);
                     break;
+                case PRINT_PROCESS_IRQ:
+                    this.krnPrintUserPrg(params);
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -157,6 +160,11 @@ module TSOS {
             _CPU.execute();
         }
 
+        public krnPrintUserPrg(params: any[]){
+            _Console.putText(params[0]);
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+        }
 
         public krnBreakProcess(params: any[]) {
             _Console.putText(params[0]);

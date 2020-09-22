@@ -18,6 +18,7 @@ var TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt prior
 var KEYBOARD_IRQ = 1;
 var EXECUTE_PROCESS_IRQ = 2;
 var BREAK_PROCESS_IRQ = 3;
+var PRINT_PROCESS_IRQ = 4;
 var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 //
 // Global Variables

@@ -76,6 +76,21 @@ module TSOS {
                 Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         }
 
-
+        public static systemCall() {
+            let retVal = "";
+            if (_CPU.getXReg() === 1) {
+                retVal += _CPU.getXReg();
+            } else if (_CPU.getXReg() === 2) {
+                let index = _CPU.getYReg();
+                let val = _MemoryAccessor.readByte(Utils.decToHex(index));
+                while(val !== "0" && val !== "00"){
+                    retVal += String.fromCharCode(Utils.hexToDec(val));
+                    index++;
+                    val = _MemoryAccessor.readByte(Utils.decToHex(index));
+                    console.log("Value: " + val);
+                }
+            }
+            _KernelInterruptQueue.enqueue(new Interrupt(PRINT_PROCESS_IRQ, [retVal]));
+        }
     }
 }

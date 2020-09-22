@@ -113,6 +113,9 @@ var TSOS;
                 case BREAK_PROCESS_IRQ:
                     this.krnBreakProcess(params);
                     break;
+                case PRINT_PROCESS_IRQ:
+                    this.krnPrintUserPrg(params);
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -138,6 +141,11 @@ var TSOS;
         // - CloseFile
         Kernel.prototype.krnExecuteProcess = function () {
             _CPU.execute();
+        };
+        Kernel.prototype.krnPrintUserPrg = function (params) {
+            _Console.putText(params[0]);
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
         };
         Kernel.prototype.krnBreakProcess = function (params) {
             _Console.putText(params[0]);

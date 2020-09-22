@@ -24,6 +24,8 @@ const EXECUTE_PROCESS_IRQ: number = 2;
 
 const BREAK_PROCESS_IRQ: number = 3;
 
+const PRINT_PROCESS_IRQ: number = 4;
+
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 
 //
