@@ -20,6 +20,10 @@ const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (inte
                               // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 const KEYBOARD_IRQ: number = 1;
 
+const EXECUTE_PROCESS_IRQ: number = 2;
+
+const BREAK_PROCESS_IRQ: number = 3;
+
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 
 //

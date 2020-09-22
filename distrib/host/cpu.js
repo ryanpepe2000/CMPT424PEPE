@@ -35,15 +35,45 @@ var TSOS;
             this.Zflag = 0;
             this.isExecuting = false;
         };
-        Cpu.prototype.setAcc = function (num) {
-            this.Acc = num;
-        };
         Cpu.prototype.cycle = function () {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
         };
-        Cpu.prototype.execute = function (pc) {
+        Cpu.prototype.execute = function () {
+        };
+        Cpu.prototype.getAcc = function () {
+            return this.Acc;
+        };
+        Cpu.prototype.setAcc = function (num) {
+            this.Acc = num;
+            // Move this elsewhere
+            $("#cpu-acc").html(TSOS.Utils.decToHex(this.Acc).toUpperCase());
+        };
+        Cpu.prototype.getXReg = function () {
+            return this.Xreg;
+        };
+        Cpu.prototype.setXReg = function (num) {
+            this.Xreg = num;
+            $("#cpu-x").html(TSOS.Utils.decToHex(this.Xreg).toUpperCase());
+        };
+        Cpu.prototype.getYReg = function () {
+            return this.Yreg;
+        };
+        Cpu.prototype.setYReg = function (num) {
+            this.Yreg = num;
+            $("#cpu-y").html(TSOS.Utils.decToHex(this.Yreg).toUpperCase());
+        };
+        Cpu.prototype.getZFlag = function () {
+            return this.Zflag;
+        };
+        Cpu.prototype.enableZFlag = function () {
+            this.Zflag = 1;
+            $("#cpu-z").html(TSOS.Utils.decToHex(this.Zflag));
+        };
+        Cpu.prototype.disableZFlag = function () {
+            this.Zflag = 0;
+            $("#cpu-z").html(TSOS.Utils.decToHex(this.Zflag));
         };
         return Cpu;
     }());

@@ -107,6 +107,12 @@ var TSOS;
                     _krnKeyboardDriver.isr(params); // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
+                case EXECUTE_PROCESS_IRQ:
+                    this.krnExecuteProcess();
+                    break;
+                case BREAK_PROCESS_IRQ:
+                    this.krnBreakProcess(params);
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -130,6 +136,15 @@ var TSOS;
         // - ReadFile
         // - WriteFile
         // - CloseFile
+        Kernel.prototype.krnExecuteProcess = function () {
+            _CPU.execute();
+        };
+        Kernel.prototype.krnBreakProcess = function (params) {
+            _Console.putText(params[0]);
+            _Console.putText("Terminating user program.");
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+        };
         //
         // OS Utility Routines
         //

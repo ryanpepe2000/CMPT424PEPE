@@ -16,6 +16,8 @@ var CPU_CLOCK_INTERVAL = 100; // This is in ms (milliseconds) so 1000 = 1 second
 var TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 var KEYBOARD_IRQ = 1;
+var EXECUTE_PROCESS_IRQ = 2;
+var BREAK_PROCESS_IRQ = 3;
 var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 //
 // Global Variables

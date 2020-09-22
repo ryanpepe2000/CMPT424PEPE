@@ -32,7 +32,7 @@ module TSOS {
             this.Zflag = 0;
             this.isExecuting = false;
         }
-        
+
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
@@ -40,12 +40,50 @@ module TSOS {
 
         }
 
-        public execute(pc: number): void{
+        public execute(): void{
 
+        }
+
+        public getAcc(): number {
+            return this.Acc;
         }
 
         public setAcc(num: number): void {
             this.Acc = num;
+            // Move this elsewhere
+            $("#cpu-acc").html(Utils.decToHex(this.Acc).toUpperCase());
+        }
+
+        public getXReg(): number {
+            return this.Xreg;
+        }
+
+        public setXReg(num: number) {
+            this.Xreg = num;
+            $("#cpu-x").html(Utils.decToHex(this.Xreg).toUpperCase());
+        }
+
+        public getYReg(): number {
+            return this.Yreg;
+        }
+
+        public setYReg(num: number) {
+            this.Yreg = num;
+            $("#cpu-y").html(Utils.decToHex(this.Yreg).toUpperCase());
+        }
+
+        public getZFlag(): number {
+            return this.Zflag;
+        }
+
+        public enableZFlag() {
+            this.Zflag = 1;
+            $("#cpu-z").html(Utils.decToHex(this.Zflag));
+        }
+
+        public disableZFlag() {
+            this.Zflag = 0;
+            $("#cpu-z").html(Utils.decToHex(this.Zflag));
         }
     }
 }
