@@ -57,6 +57,7 @@ let _DefaultFontSize: number = 13;
 let _FontHeightMargin: number = 4;       // Additional space added to font size when advancing a line.
 
 let _Trace: boolean = true;              // Default the OS trace to be on.
+let _SingleStep: boolean = false;		 // Default the Single Step mode to be off.
 
 // The OS Kernel and its queues.
 let _Kernel: TSOS.Kernel;

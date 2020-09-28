@@ -15,6 +15,10 @@ module TSOS {
         constructor(private processes: Array<ProcessControlBlock> = new Array<ProcessControlBlock>()) {
         }
 
+        public getProcessList(): Array<ProcessControlBlock> {
+            return this.processes;
+        }
+
         public createProcess(): ProcessControlBlock {
             let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID());
             this.processes[this.processes.length] = pcb;
@@ -44,6 +48,69 @@ module TSOS {
                     public yReg: number = 0,
                     public zFlag: number = 0,
                     public state: string = "Waiting"){
+        }
+
+        public getPC(): number {
+            return this.pc;
+        }
+
+        public setPC(num: number) {
+            this.pc = num;
+        }
+
+        public addPC(amount: number){
+            this.pc += amount;
+            if (this.pc > MEMORY_LENGTH){
+                this.pc = this.pc % MEMORY_LENGTH;
+            }
+        }
+
+        public getAcc(): number {
+            return this.acc;
+        }
+
+        public setAcc(num: number): void {
+            this.acc = num;
+        }
+
+        public getXReg(): number {
+            return this.xReg;
+        }
+
+        public setXReg(num: number) {
+            this.xReg = num;
+        }
+
+        public getYReg(): number {
+            return this.yReg;
+        }
+
+        public setYReg(num: number) {
+            this.yReg = num;
+        }
+
+        public getZFlag(): number {
+            return this.zFlag;
+        }
+
+        public setZFlag(num: number){
+            this.zFlag = num;
+        }
+
+        public enableZFlag() {
+            this.zFlag = 1;
+        }
+
+        public disableZFlag() {
+            this.zFlag = 0;
+        }
+
+        public getState(): string {
+            return this.state;
+        }
+
+        public setState(state: string) {
+            this.state = state;
         }
     }
 }

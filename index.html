@@ -66,45 +66,51 @@ s
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item px-2" value="Start" style="cursor: pointer" onclick="$('#btnStartOS').click()">
+                <li class="nav-item px-2" value="Start" style="cursor: pointer" onclick="TSOS.Control.hostBtnStartOS_click(this);">
                     <a class="nav-link border rounded">Start</a>
                 </li>
                 <li class="nav-item px-2" value="Halt" style="cursor: pointer">
-                    <a class="nav-link border rounded" onclick="$('#btnHaltOS').click()">Halt</a>
+                    <a class="nav-link border rounded" onclick="TSOS.Control.hostBtnHaltOS_click(this);">Halt</a>
                 </li>
-                <li class="nav-item px-2" value="Reset" style="cursor: pointer" onclick="$('#btnReset').click()">
+                <li class="nav-item px-2" value="Reset" style="cursor: pointer" onclick="TSOS.Control.hostBtnReset_click(this);">
                     <a class="nav-link border rounded">Reset</a>
                 </li>
+                <li class="nav-item px-2" value="Single Step:" style="cursor: pointer" onclick="TSOS.Control.hostBtnToggleStep_click(this);">
+                    <a id="single_step" class="nav-link border rounded">Single Step: Off</a>
+                </li>
+                <li class="nav-item px-2" value="Step" style="cursor: pointer" onclick="TSOS.Control.hostBtnStep_click(this);">
+                    <a class="nav-link border rounded">Step</a>
+                </li>
             </ul>
-            <!-- Hidden Buttons used in Nav (replace later)-->
-            <div id="divButtonBar">
-                <input type="button"
-                       id = "btnStartOS"
-                       name="brnStartOS"
-                       class="normal_button"
-                       value="Start"
-                       tabindex="0"
-                       hidden
-                       onclick="TSOS.Control.hostBtnStartOS_click(this);">
-                <input type="button"
-                       id = "btnHaltOS"
-                       name="brnHaltOS"
-                       class="normal_button"
-                       disabled="disabled"
-                       value="Halt"
-                       tabindex="1"
-                       hidden
-                       onclick="TSOS.Control.hostBtnHaltOS_click(this);">
-                <input type="button"
-                       id = "btnReset"
-                       name="brnReset"
-                       class="normal_button"
-                       disabled="disabled"
-                       value="Reset"
-                       tabindex="2"
-                       hidden
-                       onclick="TSOS.Control.hostBtnReset_click(this);">
-            </div>
+                <!-- Hidden Buttons used in Nav (replace later)-->
+                <div id="divButtonBar">
+                    <input type="button"
+                           id = "btnStartOS"
+                           name="brnStartOS"
+                           class="normal_button"
+                           value="Start"
+                           tabindex="0"
+                           hidden
+                           onclick="TSOS.Control.hostBtnStartOS_click(this);">
+                    <input type="button"
+                           id = "btnHaltOS"
+                           name="brnHaltOS"
+                           class="normal_button"
+                           disabled="disabled"
+                           value="Halt"
+                           tabindex="1"
+                           hidden
+                           onclick="TSOS.Control.hostBtnHaltOS_click(this);">
+                    <input type="button"
+                           id = "btnReset"
+                           name="brnReset"
+                           class="normal_button"
+                           disabled="disabled"
+                           value="Reset"
+                           tabindex="2"
+                           hidden
+                           onclick="TSOS.Control.hostBtnReset_click(this);">
+                </div>
             </nav>
         </div>
     </div>
@@ -185,19 +191,17 @@ s
                     <table id="cpu" class="table text-center">
                         <tr>
                             <th>PC</th>
-                            <th>IR</th>
                             <th>Acc</th>
                             <th>X</th>
                             <th>Y</th>
                             <th>Z</th>
                         </tr>
                         <tr>
-                            <td id="cpu-pc">0</td>
-                            <td id="cpu-ir">00</td>
-                            <td id="cpu-acc">00</td>
-                            <td id="cpu-x">0</td>
-                            <td id="cpu-y">0</td>
-                            <td id="cpu-z">0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
                         </tr>
                     </table>
                 </div>
@@ -208,15 +212,9 @@ s
                 <div class="card-header">Process Control Blocks</div>
                 <div class="card-body">
                     <table id="pcb" class="table text-center">
-                        <tr>
-                            <th>PID</th>
-                            <th>PC</th>
-                            <th>Acc</th>
-                            <th>X</th>
-                            <th>Y</th>
-                            <th>Z</th>
-                            <th>S</th>
-                        </tr>
+                        <tbody>
+                            <tr><td colspan='7'>No programs have been loaded</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>

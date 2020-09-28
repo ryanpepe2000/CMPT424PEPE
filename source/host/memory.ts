@@ -14,10 +14,14 @@ module TSOS {
         }
 
         public init(): void {
+            this.clearMemory();
+            Control.initMemoryDisplay();
+        }
+
+        clearMemory(): void {
             for (let i = 0; i < this.memory.length; i++){
                 this.memory[i] = "00";
             }
-            Control.initMemoryDisplay();
         }
 
         getMemory(address: string): string{
@@ -27,7 +31,6 @@ module TSOS {
         setMemory(address:number, val: string): boolean{
             try{
                 this.memory[Utils.decToHex(address)] = val;
-                Control.updateMemoryDisplay(Utils.decToHex(address));
             } catch (e){
                 _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
                 return false;

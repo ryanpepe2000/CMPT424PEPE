@@ -17,5 +17,9 @@ module TSOS {
             }
             return true;
         }
+
+        clearMemory() {
+            _Memory.clearMemory();
+        }
     }
 }

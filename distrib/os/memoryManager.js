@@ -18,6 +18,9 @@ var TSOS;
             }
             return true;
         };
+        MemoryManager.prototype.clearMemory = function () {
+            _Memory.clearMemory();
+        };
         return MemoryManager;
     }());
     TSOS.MemoryManager = MemoryManager;

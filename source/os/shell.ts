@@ -111,6 +111,12 @@ module TSOS {
                 "- Updates the status message in taskbar.");
             this.commandList[this.commandList.length] = sc;
 
+            // run
+            sc = new ShellCommand(this.shellRun,
+                "run",
+                "- Executes a user program.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
@@ -337,6 +343,9 @@ module TSOS {
                     case "status":
                         _StdOut.putText("Updates the status message");
                         break;
+                    case "run":
+                        _StdOut.putText("Begins execution of a user program");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -415,9 +424,8 @@ module TSOS {
                 let userCode = (<HTMLInputElement> document.getElementById("taProgramInput")).value.split(" ");
                 if (MemoryManager.memoryAvailable(userCode.length)){
                     let pcb: ProcessControlBlock = _ProcessManager.createProcess();
-                    Control.updatePCBDisplay(pcb);
                     // Use length -1 because split adds an extra "" element at end
-                    for (let i = 0; i < userCode.length - 1; i++){
+                    for (let i = 0; i < userCode.length - 1; i+=0x1){
                         _MemoryAccessor.writeByte(i, userCode[i]);
                     }
                     _StdOut.putText("Process Loaded. PID: " + pcb.pid);
@@ -462,7 +470,6 @@ module TSOS {
             }
         }
 
-
         public shellStatus(args: string[]) {
             if (args.length > 0) {
                 _Status = "";
@@ -471,6 +478,15 @@ module TSOS {
                 });
             } else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
+        }
+
+        public shellRun(args: string[]) {
+            if (args.length > 0) {
+                let pcb = _ProcessManager.getPCB(parseInt(args[0]));
+                if (pcb !== null) {
+                    _CPU.startProcess(pcb);
+                }
             }
         }
     }

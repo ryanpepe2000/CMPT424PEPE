@@ -63,6 +63,9 @@ var TSOS;
             // status
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Updates the status message in taskbar.");
             this.commandList[this.commandList.length] = sc;
+            // run
+            sc = new TSOS.ShellCommand(this.shellRun, "run", "- Executes a user program.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -275,6 +278,9 @@ var TSOS;
                     case "status":
                         _StdOut.putText("Updates the status message");
                         break;
+                    case "run":
+                        _StdOut.putText("Begins execution of a user program");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -350,9 +356,8 @@ var TSOS;
                 var userCode = document.getElementById("taProgramInput").value.split(" ");
                 if (TSOS.MemoryManager.memoryAvailable(userCode.length)) {
                     var pcb = _ProcessManager.createProcess();
-                    TSOS.Control.updatePCBDisplay(pcb);
                     // Use length -1 because split adds an extra "" element at end
-                    for (var i = 0; i < userCode.length - 1; i++) {
+                    for (var i = 0; i < userCode.length - 1; i += 0x1) {
                         _MemoryAccessor.writeByte(i, userCode[i]);
                     }
                     _StdOut.putText("Process Loaded. PID: " + pcb.pid);
@@ -409,6 +414,14 @@ var TSOS;
             }
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
+        };
+        Shell.prototype.shellRun = function (args) {
+            if (args.length > 0) {
+                var pcb = _ProcessManager.getPCB(parseInt(args[0]));
+                if (pcb !== null) {
+                    _CPU.startProcess(pcb);
+                }
             }
         };
         return Shell;

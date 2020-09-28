@@ -74,7 +74,7 @@ module TSOS {
                This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
                that it has to look for interrupts and process them if it finds any.                          
             */
-
+            Control.updateAllDisplays();
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
@@ -162,15 +162,13 @@ module TSOS {
 
         public krnPrintUserPrg(params: any[]){
             _Console.putText(params[0]);
-            _Console.advanceLine();
-            _Console.putText(_OsShell.promptStr);
         }
 
         public krnBreakProcess(params: any[]) {
-            _Console.putText(params[0]);
-            _Console.putText("Terminating user program.");
+            _CPU.isExecuting = false;
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
+            _MemoryManager.clearMemory();
         }
         //
         // OS Utility Routines

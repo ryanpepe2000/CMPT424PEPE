@@ -15,6 +15,9 @@ var TSOS;
             if (processes === void 0) { processes = new Array(); }
             this.processes = processes;
         }
+        ProcessManager.prototype.getProcessList = function () {
+            return this.processes;
+        };
         ProcessManager.prototype.createProcess = function () {
             var pcb = new ProcessControlBlock(this.getNextPID());
             this.processes[this.processes.length] = pcb;
@@ -51,6 +54,54 @@ var TSOS;
             this.zFlag = zFlag;
             this.state = state;
         }
+        ProcessControlBlock.prototype.getPC = function () {
+            return this.pc;
+        };
+        ProcessControlBlock.prototype.setPC = function (num) {
+            this.pc = num;
+        };
+        ProcessControlBlock.prototype.addPC = function (amount) {
+            this.pc += amount;
+            if (this.pc > MEMORY_LENGTH) {
+                this.pc = this.pc % MEMORY_LENGTH;
+            }
+        };
+        ProcessControlBlock.prototype.getAcc = function () {
+            return this.acc;
+        };
+        ProcessControlBlock.prototype.setAcc = function (num) {
+            this.acc = num;
+        };
+        ProcessControlBlock.prototype.getXReg = function () {
+            return this.xReg;
+        };
+        ProcessControlBlock.prototype.setXReg = function (num) {
+            this.xReg = num;
+        };
+        ProcessControlBlock.prototype.getYReg = function () {
+            return this.yReg;
+        };
+        ProcessControlBlock.prototype.setYReg = function (num) {
+            this.yReg = num;
+        };
+        ProcessControlBlock.prototype.getZFlag = function () {
+            return this.zFlag;
+        };
+        ProcessControlBlock.prototype.setZFlag = function (num) {
+            this.zFlag = num;
+        };
+        ProcessControlBlock.prototype.enableZFlag = function () {
+            this.zFlag = 1;
+        };
+        ProcessControlBlock.prototype.disableZFlag = function () {
+            this.zFlag = 0;
+        };
+        ProcessControlBlock.prototype.getState = function () {
+            return this.state;
+        };
+        ProcessControlBlock.prototype.setState = function (state) {
+            this.state = state;
+        };
         return ProcessControlBlock;
     }());
     TSOS.ProcessControlBlock = ProcessControlBlock;
