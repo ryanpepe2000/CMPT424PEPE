@@ -1,0 +1,48 @@
+%-----------------------------------------------------------------------------------------------------
+%TABLE OF CONTENTS (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD TABLE OF CONTENTS)
+%-----------------------------------------------------------------------------------------------------
+\tableofcontents 
+\newpage
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%REPORT TEXT
+%-----------------------------------------------------------------------------------------------------
+%\section{Introduction}
+%    \lipsum[1,1]
+\section{Questions}
+    \begin{enumerate}
+        \item Explain the difference between internal and external fragmentation.
+        \item[] Internal Fragmentation is caused when a block of memory is allocated to a process and that process does not use all of the memory within the block. For example, an internal fragment would be created if a process gained access to a block of memory 100KB in size, while the process will only require 80KB. The extra 20KB of space is still designated to that process, but it is internally fragmented. On the contrary, external fragmentation occurs when two or more processes use a block of memory but there is left over memory in between the two processes physical addresses. For example, in process A uses a memory block from 0x00 to 0x04 and process B uses a memory block from 0x07 to 0x10, then there is an external fragment in the block from 0x05 to 0x06.
+        \item Given five (5) memory partitions of 100KB, 500KB, 200KB, 300KB, and 600KB (in that order), how would optimal, first-fit, best-fit, and worst-fit algorithms place processes of 212KB, 417KB, 112KB, and 426KB (in that order)?
+        \begin{enumerate}
+            \item First-Fit
+            \item[] 212KB-$>$500KB (new partition of 288KB), 417KB-$>$600KB (new partition of 183KB), 112KB-$>$200KB (new partition of 88KB), 426KB needs a larger partition
+            \item Best-Fit
+            \item[] 212KB-$>$300KB, 417KB-$>$500KB,112KB-$>$200KB,426KB-$>$600KB
+            \item Worst-Fit
+            \item[] 212KB-$>$600KB (new partition of 388KB), 417KB-$>$500KB (new partition of 83KB), 112KB-$>$388KB (new partition of 276KB), 426KB needs a larger partition 
+            \item Optimal Solution
+            \item[] \textbf{Best-Fit Model}
+        \end{enumerate}
+    \end{enumerate}
+%\section{Conclusion}
+%    \lipsum[4-4] %dummy text, replace with original text
+%-----------------------------------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------------------------------
+%BIBLIOGRAPHY (COMMENT OUT THIS SECTION IF YOU DON'T WANT TO ADD BIBLIOGRAPHY)
+%-----------------------------------------------------------------------------------------------------
+%
+%\begin{thebibliography}{}%
+%
+%\bibitem{reference_label1}
+%{2.Author}. \textit{1. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\bibitem{reference_label2}
+%{2.Author}. \textit{2. Name of the document}. {Magazine/Journal/Publisher}.\\
+%\texttt{link to the web resource}
+
+%\end{thebibliography}
+%-----------------------------------------------------------------------------------------------------

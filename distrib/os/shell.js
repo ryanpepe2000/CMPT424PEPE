@@ -63,6 +63,12 @@ var TSOS;
             // status
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Updates the status message in taskbar.");
             this.commandList[this.commandList.length] = sc;
+            // run
+            sc = new TSOS.ShellCommand(this.shellRun, "run", "- Executes a user program.");
+            this.commandList[this.commandList.length] = sc;
+            // clear memory
+            sc = new TSOS.ShellCommand(this.shellClearMemory, "clm", "- Clears the system memory.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -275,6 +281,12 @@ var TSOS;
                     case "status":
                         _StdOut.putText("Updates the status message");
                         break;
+                    case "run":
+                        _StdOut.putText("Begins execution of a user program");
+                        break;
+                    case "clm":
+                        _StdOut.putText("Clears the entire system memory");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -346,24 +358,58 @@ var TSOS;
             _Kernel.krnTrapError("Blue screen of death");
         };
         Shell.prototype.shellLoad = function (args) {
-            var acceptedValues = [" ", "\n", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
-            var encounteredError = false;
-            var userCode = document.getElementById("taProgramInput");
-            // Iterate through chars in input element and verify characters are valid
-            if (userCode.value.length <= 0)
-                encounteredError = true;
-            if (!encounteredError) {
-                for (var i = 0; i < userCode.value.length; i++) {
-                    if (acceptedValues.indexOf(userCode.value.toLowerCase().charAt(i)) == -1) { // Value is not found
-                        encounteredError = true;
-                        break;
+            if (Shell.validateCode()) {
+                var userCode = document.getElementById("taProgramInput").value.split(" ");
+                if (TSOS.MemoryManager.memoryAvailable(userCode.length)) {
+                    var pcb = _ProcessManager.createProcess();
+                    // Use length -1 because split adds an extra "" element at end
+                    for (var i = 0; i < userCode.length - 1; i += 0x1) {
+                        _MemoryAccessor.writeByte(i, userCode[i]);
                     }
+                    _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                }
+                else {
+                    _StdOut.putText("Valid Code. Memory is not currently available.");
                 }
             }
-            if (!encounteredError)
-                _StdOut.putText("Program loaded...");
-            else
-                _StdOut.putText("This code cannot be read.");
+            else {
+                _StdOut.putText("Invalid program syntax.");
+            }
+        };
+        // Helper method for shellLoad()
+        // Reformats user code and returns true if it is valid
+        Shell.validateCode = function () {
+            var acceptedValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+            var retVal = "";
+            var userCodeHTML = document.getElementById("taProgramInput");
+            var userCode = userCodeHTML.value.toUpperCase().split(" ").join("").split("\n").join(""); // Removes all spaces and new lines
+            var invalidCode = userCode.length <= 0; // Ensures code is not empty
+            // Iterate through chars in input element and verify characters are valid. Format properly
+            for (var idx = 0, counter = 0; idx < userCode.length; idx++) {
+                if (acceptedValues.indexOf(userCode.charAt(idx)) !== -1) { // Character is a valid hex value
+                    retVal += userCode.charAt(idx);
+                    counter++;
+                }
+                else {
+                    invalidCode = true;
+                    break;
+                }
+                if (counter % 2 == 0) {
+                    retVal += " ";
+                }
+            }
+            if (invalidCode) {
+                return false;
+            }
+            else {
+                if (userCode.length % 2 == 1) {
+                    userCodeHTML.value = retVal + "0";
+                }
+                else {
+                    userCodeHTML.value = retVal;
+                }
+                return true;
+            }
         };
         Shell.prototype.shellStatus = function (args) {
             if (args.length > 0) {
@@ -375,6 +421,18 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
             }
+        };
+        Shell.prototype.shellRun = function (args) {
+            if (args.length > 0) {
+                var pcb = _ProcessManager.getPCB(parseInt(args[0]));
+                if (pcb !== null) {
+                    _CPU.startProcess(pcb);
+                }
+                TSOS.Control.highlightMemoryDisplay();
+            }
+        };
+        Shell.prototype.shellClearMemory = function (args) {
+            _Memory.resetMemory();
         };
         return Shell;
     }());

@@ -63,7 +63,13 @@ var TSOS;
             taLog.value = str + taLog.value;
             // Update the graphical taskbar
             var taTaskBar = document.getElementById("taTaskBar");
-            taTaskBar.value = "Date: " + new Date().toLocaleString() + "\nStatus: " + _Status;
+            taTaskBar.innerHTML = "";
+            var dateElement = document.createElement('p');
+            var statusElement = document.createElement('p');
+            dateElement.innerHTML = "Date: " + new Date().toLocaleString();
+            statusElement.innerHTML = "Status: " + _Status;
+            taTaskBar.appendChild(dateElement);
+            taTaskBar.appendChild(statusElement);
             // TODO in the future: Optionally update a log database or some streaming service.
         };
         //
@@ -80,6 +86,12 @@ var TSOS;
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            // Create and initialize the memory and accessor (also parts of hardware)
+            _Memory = new TSOS.Memory();
+            _Memory.init();
+            _MemoryAccessor = new TSOS.MemoryAccessor();
+            // Create and initialize the process manager
+            _ProcessManager = new TSOS.ProcessManager();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -101,6 +113,118 @@ var TSOS;
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
+        };
+        Control.hostBtnToggleStep_click = function (btn) {
+            _SingleStep = !_SingleStep;
+            document.getElementById("single_step").innerHTML = "Single Step: " +
+                (_SingleStep ? "On" : "Off");
+            for (var i = 0; i < _ProcessManager.getProcessList().length; i++) {
+                if (_ProcessManager.getPCB(i).getState() === "Executing") {
+                    _CPU.isExecuting = true;
+                }
+            }
+        };
+        Control.hostBtnStep_click = function (btn) {
+            for (var i = 0; i < _ProcessManager.getProcessList().length; i++) {
+                if (_ProcessManager.getPCB(i).getState() === "Executing") {
+                    _CPU.isExecuting = true;
+                }
+            }
+        };
+        // To be used on every clock pulse. Updates all displays accordingly
+        Control.updateAllDisplays = function () {
+            this.updateCPUDisplay();
+            this.updatePCBDisplay();
+            this.updateMemoryDisplay();
+        };
+        // Builds the CPU display and constantly updates
+        Control.updateCPUDisplay = function () {
+            var table = document.getElementById('cpu');
+            var tableContent = "<tbody>" +
+                "<tr>" +
+                "<th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th>" +
+                "</tr>" +
+                "<tr>" +
+                ("<td>" + _CPU.getPC() + "</td>") +
+                ("<td>" + _CPU.getAcc() + "</td>") +
+                ("<td>" + _CPU.getXReg() + "</td>") +
+                ("<td>" + _CPU.getYReg() + "</td>") +
+                ("<td>" + _CPU.getZFlag() + "</td>") +
+                "</tr>" +
+                "</tbody>";
+            table.innerHTML = tableContent;
+        };
+        // Builds the PCB display and constantly updates
+        Control.updatePCBDisplay = function () {
+            var table = document.getElementById('pcb');
+            var tableContent = "<tbody>" +
+                "<tr>" +
+                "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th>" +
+                "</tr>";
+            if (_ProcessManager.getProcessList().length > 0) {
+                for (var pid = 0; pid < _ProcessManager.getProcessList().length; pid++) {
+                    var process = _ProcessManager.getPCB(pid);
+                    tableContent += ("<tr>" +
+                        ("<td>" + pid + "</td>") +
+                        ("<td>" + process.getPC() + "</td>") +
+                        ("<td>" + process.getAcc() + "</td>") +
+                        ("<td>" + process.getXReg() + "</td>") +
+                        ("<td>" + process.getYReg() + "</td>") +
+                        ("<td>" + process.getZFlag() + "</td>") +
+                        ("<td>" + process.getState() + "</td>") +
+                        "</tr>");
+                }
+            }
+            else {
+                tableContent += "<tr><td colspan='7'>No programs have been loaded</td></tr>";
+            }
+            tableContent += "</tbody>";
+            table.innerHTML = tableContent;
+        };
+        // Initialize and populate table to display memory
+        Control.initMemoryDisplay = function () {
+            var table = document.getElementById("memory");
+            table.innerHTML = "";
+            var tableContent = "<tbody>";
+            for (var i = 0; i < _Memory.memory.length; i += 0x8) {
+                var row = TSOS.Utils.padHex(TSOS.Utils.decToHex(i), 2).toUpperCase();
+                tableContent += "<tr class=\"memory-row\"><td>" + row + "</td>";
+                // Need to keep track of current search index and append 8 cells with proper id
+                // to the table
+                for (var j = i; j < i + 8; j += 0x1) {
+                    var cell = _Memory.getMemory(j.toString()).toUpperCase();
+                    tableContent += "<td id=\"mem-cell-" + j + "\">" + cell + "</td>";
+                }
+                tableContent += "</tr>";
+            }
+            tableContent += "</tbody>";
+            table.innerHTML = tableContent;
+        };
+        // Updates every memory block item to display properly
+        Control.updateMemoryDisplay = function () {
+            for (var i = 0; i < _Memory.memory.length; i++) {
+                var element = $("#mem-cell-" + i);
+                element.html(_MemoryAccessor.readByte(TSOS.Utils.decToHex(i)));
+            }
+        };
+        // Applies color the current IR and its parameters
+        Control.highlightMemoryDisplay = function () {
+            var table = document.getElementById("memory");
+            var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
+            var tableElements = $("#memory tbody *");
+            tableElements.removeAttr('style');
+            if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
+                for (var offset = 0; offset < instr.getPCInc(); offset++) {
+                    var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
+                    table.scrollTop = cell.offset().top;
+                    if (offset === 0) {
+                        cell.css("color", "green");
+                    }
+                    else {
+                        cell.css("color", "red");
+                    }
+                }
+            }
         };
         return Control;
     }());

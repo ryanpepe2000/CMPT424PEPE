@@ -10,17 +10,28 @@
 //
 // Global CONSTANTS (TypeScript 1.5 introduced const. Very cool.)
 //
-var APP_NAME = "TSOS"; // 'cause Bob and I were at a loss for a better name.
-var APP_VERSION = "0.07"; // What did you expect?
+var APP_NAME = "THaNaTOS"; // 'cause Bob and I were at a loss for a better name.
+var APP_VERSION = "2"; // What did you expect?
 var CPU_CLOCK_INTERVAL = 100; // This is in ms (milliseconds) so 1000 = 1 second.
 var TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 var KEYBOARD_IRQ = 1;
+var EXECUTE_PROCESS_IRQ = 2;
+var BREAK_PROCESS_IRQ = 3;
+var PRINT_PROCESS_IRQ = 4;
+var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
+// Hardware (host)
 var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
+var _Memory;
+var _MemoryAccessor;
+// Software (OS)
+var _MemoryManager = null;
+// Process Implementations
+var _ProcessManager = null;
 var _OSclock = 0; // Page 23.
 var _Mode = 0; // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
 var _Status = "Experiencing pain";
@@ -30,6 +41,7 @@ var _DefaultFontFamily = "sans"; // Ignored, I think. The was just a place-holde
 var _DefaultFontSize = 13;
 var _FontHeightMargin = 4; // Additional space added to font size when advancing a line.
 var _Trace = true; // Default the OS trace to be on.
+var _SingleStep = false; // Default the Single Step mode to be off.
 // The OS Kernel and its queues.
 var _Kernel;
 var _KernelInterruptQueue = null;

@@ -44,6 +44,29 @@ var TSOS;
             }
             return retVal;
         };
+        Utils.hexToDec = function (hexVal) {
+            return parseInt("0x" + hexVal);
+        };
+        Utils.decToHex = function (decVal) {
+            return decVal.toString(16);
+        };
+        Utils.padHex = function (hexString, padAmt) {
+            if (hexString == null)
+                return null;
+            var retVal = hexString;
+            while (retVal.length < padAmt) {
+                retVal = "0" + retVal;
+            }
+            return "0x" + retVal.toUpperCase();
+        };
+        Utils.removePad = function (hexString) {
+            for (var i = 0; i < hexString.length; i++) {
+                if (hexString.charAt(i) !== '0') {
+                    return hexString.substr(i).toLowerCase();
+                }
+            }
+            return "0";
+        };
         return Utils;
     }());
     TSOS.Utils = Utils;

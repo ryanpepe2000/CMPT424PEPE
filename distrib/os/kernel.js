@@ -23,6 +23,8 @@ var TSOS;
             // Initialize the console.
             _Console = new TSOS.Console(); // The command line interface / console I/O device.
             _Console.init();
+            // Initialize the memory accessor
+            _MemoryAccessor = new TSOS.MemoryAccessor();
             // Initialize standard input and output to the _Console.
             _StdIn = _Console;
             _StdOut = _Console;
@@ -64,6 +66,8 @@ var TSOS;
                This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
                that it has to look for interrupts and process them if it finds any.
             */
+            // Update all displays on every clock pulse
+            TSOS.Control.updateAllDisplays();
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
@@ -107,6 +111,15 @@ var TSOS;
                     _krnKeyboardDriver.isr(params); // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
+                case EXECUTE_PROCESS_IRQ:
+                    this.krnExecuteProcess(); // Kernel system call to execute a process
+                    break;
+                case BREAK_PROCESS_IRQ:
+                    this.krnBreakProcess(params); // Kernel system call to break program
+                    break;
+                case PRINT_PROCESS_IRQ:
+                    this.krnPrintUserPrg(params); // Kernel system call to print user program output
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -130,6 +143,22 @@ var TSOS;
         // - ReadFile
         // - WriteFile
         // - CloseFile
+        Kernel.prototype.krnExecuteProcess = function () {
+            _CPU.execute();
+        };
+        Kernel.prototype.krnPrintUserPrg = function (params) {
+            _Console.putText(params[0]);
+        };
+        Kernel.prototype.krnBreakProcess = function (params) {
+            // Puts "Program completion message" and advances line with new prompt
+            _CPU.isExecuting = false;
+            _Console.advanceLine();
+            _Console.putText(params[0]);
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+            _MemoryAccessor.clearMemory();
+            _CPU.init();
+        };
         //
         // OS Utility Routines
         //
