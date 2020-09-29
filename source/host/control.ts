@@ -239,10 +239,11 @@ module TSOS {
             }
         }
 
-        static highlightMemoryDisplay(instruction: Instruction) {
+        static highlightMemoryDisplay() {
+            let instr = _CPU.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_CPU.getPC())));
             let tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
-            for (let offset = 0; offset < instruction.getPCInc(); offset++){
+            for (let offset = 0; offset < instr.getPCInc(); offset++){
                 let cell = $(`#mem-cell-${_CPU.getPC()+ offset}`);
                 if (offset === 0){
                     cell.css("color", "green");

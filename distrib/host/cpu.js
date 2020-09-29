@@ -48,7 +48,7 @@ var TSOS;
             this.instructionList[8] = (new Instruction("EA", "NOP", 1, Instruction.noOperation));
             this.instructionList[9] = (new Instruction("00", "BRK", 1, Instruction["break"]));
             this.instructionList[10] = (new Instruction("EC", "CPX", 3, Instruction.compareXReg));
-            this.instructionList[11] = (new Instruction("D0", "BNE", 0, Instruction.branchBytes));
+            this.instructionList[11] = (new Instruction("D0", "BNE", 2, Instruction.branchBytes));
             this.instructionList[12] = (new Instruction("EE", "INC", 3, Instruction.incrementValue));
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         };
@@ -56,19 +56,19 @@ var TSOS;
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
+            this.execute();
             if (_SingleStep) {
                 this.isExecuting = false;
             }
-            this.execute();
+            TSOS.Control.highlightMemoryDisplay();
         };
         Cpu.prototype.execute = function () {
             for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
                 var pcb = _a[_i];
                 if (pcb.state === "Executing") {
                     var instruction = this.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC)));
-                    this.updatePCB(pcb);
-                    TSOS.Control.highlightMemoryDisplay(instruction);
                     this.runInstruction(instruction, pcb);
+                    this.updatePCB(pcb);
                 }
             }
         };
@@ -78,10 +78,10 @@ var TSOS;
                 _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 1)),
                 _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 2)) // The following item in memory
             ]);
-            _CPU.addPc(pcInc);
             if (instruction.getMneumonic() === "BRK") {
                 pcb.setState("Finished");
             }
+            _CPU.addPc(pcInc);
         };
         Cpu.prototype.getInstruction = function (opCode) {
             for (var i = 0; i < this.instructionList.length; i++) {
@@ -97,7 +97,9 @@ var TSOS;
             this.Xreg = pcb.xReg;
             this.Yreg = pcb.yReg;
             this.Zflag = pcb.zFlag;
-            this.isExecuting = true;
+            if (!_SingleStep) {
+                this.isExecuting = true;
+            }
         };
         Cpu.prototype.updatePCB = function (pcb) {
             pcb.setPC(this.PC);
@@ -112,7 +114,7 @@ var TSOS;
         Cpu.prototype.addPc = function (amount) {
             this.PC += amount;
             if (this.PC > MEMORY_LENGTH) {
-                this.PC = (this.PC % MEMORY_LENGTH) + 2;
+                this.PC = (this.PC % MEMORY_LENGTH);
             }
         };
         Cpu.prototype.getAcc = function () {
@@ -174,7 +176,10 @@ var TSOS;
         };
         Instruction.storeAcc = function (params) {
             var address = params[1] + params[0];
-            _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), TSOS.Utils.decToHex(_CPU.getAcc()));
+            var val = TSOS.Utils.decToHex(_CPU.getAcc());
+            if (val === "0")
+                val = "00";
+            _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), val);
         };
         Instruction.addWithCarry = function (params) {
             var address = params[1] + params[0];
@@ -208,11 +213,10 @@ var TSOS;
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         };
         Instruction.branchBytes = function (params) {
-            var numBytes = 2; // Default to updating PC by 2
             if (_CPU.getZFlag() === 0) {
-                numBytes = TSOS.Utils.hexToDec(params[0]);
+                var numBytes = TSOS.Utils.hexToDec(params[0]);
+                _CPU.addPc(numBytes);
             }
-            _CPU.addPc(numBytes);
         };
         Instruction.incrementValue = function (params) {
             var address = params[1] + params[0];

@@ -66,6 +66,9 @@ var TSOS;
             // run
             sc = new TSOS.ShellCommand(this.shellRun, "run", "- Executes a user program.");
             this.commandList[this.commandList.length] = sc;
+            // clear memory
+            sc = new TSOS.ShellCommand(this.shellClearMemory, "clm", "- Clears the system memory.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -281,6 +284,9 @@ var TSOS;
                     case "run":
                         _StdOut.putText("Begins execution of a user program");
                         break;
+                    case "clm":
+                        _StdOut.putText("Clears the entire system memory");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -422,7 +428,11 @@ var TSOS;
                 if (pcb !== null) {
                     _CPU.startProcess(pcb);
                 }
+                TSOS.Control.highlightMemoryDisplay();
             }
+        };
+        Shell.prototype.shellClearMemory = function (args) {
+            _MemoryManager.clearMemory();
         };
         return Shell;
     }());

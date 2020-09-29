@@ -204,10 +204,11 @@ var TSOS;
                 element.html(_MemoryAccessor.readByte(TSOS.Utils.decToHex(i)));
             }
         };
-        Control.highlightMemoryDisplay = function (instruction) {
+        Control.highlightMemoryDisplay = function () {
+            var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
             var tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
-            for (var offset = 0; offset < instruction.getPCInc(); offset++) {
+            for (var offset = 0; offset < instr.getPCInc(); offset++) {
                 var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
                 if (offset === 0) {
                     cell.css("color", "green");
