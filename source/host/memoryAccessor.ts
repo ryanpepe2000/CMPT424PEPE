@@ -17,5 +17,11 @@ module TSOS {
         public writeByte(address: number, value: string): boolean {
             return _Memory.setMemory(address, value);
         }
+
+        // Calls the reset memory in TSOS.Memory
+        // Strange bug was preventing calling TSOS.Memory.clearMemory()
+        public clearMemory(){
+            _Memory.resetMemory();
+        }
     }
 }

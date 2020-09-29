@@ -32,7 +32,7 @@ module TSOS {
             this.Yreg = 0;
             this.Zflag = 0;
             this.isExecuting = false;
-            // Populate Instruction Array
+            // Populate Instruction Array with IR, mneumontic, pcincrements, and the static Instruction function
             this.instructionList[0] =  (new Instruction("A9", "LDA", 2, Instruction.loadAccConstant));
             this.instructionList[1] =  (new Instruction("AD", "LDA", 3, Instruction.loadAccMemory));
             this.instructionList[2] =  (new Instruction("8D", "STA", 3, Instruction.storeAcc));
@@ -49,11 +49,13 @@ module TSOS {
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         }
 
+        // Executes once per cpu clock pulse if there are user processes in execution
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
             this.execute();
+             // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
             }
@@ -64,24 +66,21 @@ module TSOS {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Executing") {
                     let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(this.PC)));
-                    this.runInstruction(instruction, pcb);
+                    let pcInc = instruction.getPCInc();
+                    instruction.getCallback()([
+                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 1)),  // Next item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 2))   // The following item in memory
+                    ]);
+                    if (instruction.getMneumonic() === "BRK") {
+                        pcb.setState("Finished")
+                    }
+                    _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
                 }
             }
         }
 
-        runInstruction(instruction: Instruction, pcb: ProcessControlBlock) {
-            let pcInc = instruction.getPCInc();
-            instruction.getCallback()([
-                _MemoryAccessor.readByte(Utils.decToHex(this.PC + 1)),  // Next item in memory
-                _MemoryAccessor.readByte(Utils.decToHex(this.PC + 2))   // The following item in memory
-            ]);
-            if (instruction.getMneumonic() === "BRK") {
-                pcb.setState("Finished")
-            }
-            _CPU.addPc(pcInc);
-        }
-
+        // Gets the instruction from a provided OP code
         public getInstruction(opCode: string): Instruction {
             for (let i = 0; i < this.instructionList.length; i++){
                 if (this.instructionList[i].getOpCode() === opCode){
@@ -90,6 +89,7 @@ module TSOS {
             }
         }
 
+        // Begins execution of a process. To be called by shellRun
         public startProcess(pcb: ProcessControlBlock) {
             pcb.setState("Executing");
             this.PC = pcb.pc;
@@ -102,6 +102,7 @@ module TSOS {
             }
         }
 
+        // Updates the PCB to match the current CPU's status
         updatePCB(pcb: ProcessControlBlock){
             pcb.setPC(this.PC);
             pcb.setAcc(this.Acc);
@@ -110,14 +111,15 @@ module TSOS {
             pcb.setZFlag(this.Zflag);
         }
 
+        // Getters and setters for all CPU attributes
         public getPC(): number{
             return this.PC;
         }
 
         public addPc(amount: number){
             this.PC += amount;
-            if (this.PC > MEMORY_LENGTH){
-                this.PC = (this.PC % MEMORY_LENGTH) ;
+            if (this.PC > MEMORY_LENGTH){    // If the PC overflows, it should become remainder
+                this.PC = (this.PC % MEMORY_LENGTH);
             }
         }
 
@@ -158,6 +160,7 @@ module TSOS {
         }
     }
 
+    // Class to contain all attributes and static execution commands for Processes
     export class Instruction {
         constructor(private opCode: string,
                     private mneumonic: string,
@@ -165,6 +168,7 @@ module TSOS {
                     private callback:(params?: string[]) => any){
         }
 
+        // Getters and setters
         getOpCode(): string{
             return this.opCode;
         }
@@ -194,7 +198,7 @@ module TSOS {
         public static storeAcc(params: string[]){
             let address = params[1] + params[0];
             let val = Utils.decToHex(_CPU.getAcc());
-            if (val === "0") val = "00";
+            if (val === "0") val = "00"; // Ensures the value being stored is in proper format
             _MemoryAccessor.writeByte(Utils.hexToDec(address), val);
         }
 
@@ -222,13 +226,13 @@ module TSOS {
         }
 
         public static noOperation(): void{
-            return;
+            return; // Does nothing
         }
 
-        // Should be a system call
+        // This is a system call to ensure that all
+        // break logic is executed by Kernel (God)
         public static break(): void {
-            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["An error has occurred while processing user code"]));
-            _MemoryManager.clearMemory();
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished."]));
         }
 
         public static compareXReg(params: string[]){
@@ -238,15 +242,15 @@ module TSOS {
         }
 
         public static branchBytes(params: string[]) {
-            if (_CPU.getZFlag() === 0) {
+            if (_CPU.getZFlag() === 0) { // Only branches if z flag is not set
                 let numBytes = Utils.hexToDec(params[0]);
-                _CPU.addPc(numBytes);
+                _CPU.addPc(numBytes); // Modulo operator in addPC will deal with overflow
             }
         }
 
         public static incrementValue(params: string[]) {
             let address = params[1] + params[0];
-            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return;
+            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return; //ToDo: Update this case to a system call
             _MemoryAccessor.writeByte(Utils.hexToDec(address),
                 Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         }
@@ -258,11 +262,11 @@ module TSOS {
             } else if (_CPU.getXReg() === 2) {
                 let index = _CPU.getYReg();
                 let val = _MemoryAccessor.readByte(Utils.decToHex(index));
-                while(val !== "0" && val !== "00"){
+                while(val !== "0" && val !== "00"){ // Format checks
                     retVal += String.fromCharCode(Utils.hexToDec(val));
                     val = _MemoryAccessor.readByte(Utils.decToHex(++index));
                 }
-            } else {
+            } else {   // Only sends a system call if absolutely necessary
                 return;
             }
             _KernelInterruptQueue.enqueue(new Interrupt(PRINT_PROCESS_IRQ, [retVal]));

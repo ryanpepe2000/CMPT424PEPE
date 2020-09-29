@@ -432,7 +432,7 @@ var TSOS;
             }
         };
         Shell.prototype.shellClearMemory = function (args) {
-            _MemoryManager.clearMemory();
+            _Memory.resetMemory();
         };
         return Shell;
     }());

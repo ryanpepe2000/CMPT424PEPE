@@ -23,6 +23,8 @@ var TSOS;
             // Initialize the console.
             _Console = new TSOS.Console(); // The command line interface / console I/O device.
             _Console.init();
+            // Initialize the memory accessor
+            _MemoryAccessor = new TSOS.MemoryAccessor();
             // Initialize standard input and output to the _Console.
             _StdIn = _Console;
             _StdOut = _Console;
@@ -110,13 +112,13 @@ var TSOS;
                     _StdIn.handleInput();
                     break;
                 case EXECUTE_PROCESS_IRQ:
-                    this.krnExecuteProcess();
+                    this.krnExecuteProcess(); // Kernel system call to execute a process
                     break;
                 case BREAK_PROCESS_IRQ:
-                    this.krnBreakProcess(params);
+                    this.krnBreakProcess(params); // Kernel system call to break program
                     break;
                 case PRINT_PROCESS_IRQ:
-                    this.krnPrintUserPrg(params);
+                    this.krnPrintUserPrg(params); // Kernel system call to print user program output
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -148,10 +150,14 @@ var TSOS;
             _Console.putText(params[0]);
         };
         Kernel.prototype.krnBreakProcess = function (params) {
+            // Puts "Program completion message" and advances line with new prompt
             _CPU.isExecuting = false;
             _Console.advanceLine();
+            _Console.putText(params[0]);
+            _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
-            _MemoryManager.clearMemory();
+            _MemoryAccessor.clearMemory();
+            _CPU.init();
         };
         //
         // OS Utility Routines

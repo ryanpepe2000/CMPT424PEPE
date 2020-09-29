@@ -501,7 +501,7 @@ module TSOS {
         }
 
         public shellClearMemory(args: string[]) {
-            _MemoryManager.clearMemory();
+            _Memory.resetMemory();
         }
     }
 

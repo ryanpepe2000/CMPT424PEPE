@@ -131,11 +131,13 @@ var TSOS;
                 }
             }
         };
+        // To be used on every clock pulse. Updates all displays accordingly
         Control.updateAllDisplays = function () {
             this.updateCPUDisplay();
             this.updatePCBDisplay();
             this.updateMemoryDisplay();
         };
+        // Builds the CPU display and constantly updates
         Control.updateCPUDisplay = function () {
             var table = document.getElementById('cpu');
             var tableContent = "<tbody>" +
@@ -152,6 +154,7 @@ var TSOS;
                 "</tbody>";
             table.innerHTML = tableContent;
         };
+        // Builds the PCB display and constantly updates
         Control.updatePCBDisplay = function () {
             var table = document.getElementById('pcb');
             var tableContent = "<tbody>" +
@@ -197,40 +200,29 @@ var TSOS;
             tableContent += "</tbody>";
             table.innerHTML = tableContent;
         };
-        // Initialize and populate table to display memory
+        // Updates every memory block item to display properly
         Control.updateMemoryDisplay = function () {
             for (var i = 0; i < _Memory.memory.length; i++) {
                 var element = $("#mem-cell-" + i);
                 element.html(_MemoryAccessor.readByte(TSOS.Utils.decToHex(i)));
             }
         };
+        // Applies color the current IR and its parameters
         Control.highlightMemoryDisplay = function () {
             var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
             var tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
-            for (var offset = 0; offset < instr.getPCInc(); offset++) {
-                var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
-                if (offset === 0) {
-                    cell.css("color", "green");
-                }
-                else {
-                    cell.css("color", "red");
+            if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
+                for (var offset = 0; offset < instr.getPCInc(); offset++) {
+                    var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
+                    if (offset === 0) {
+                        cell.css("color", "green");
+                    }
+                    else {
+                        cell.css("color", "red");
+                    }
                 }
             }
-        };
-        Control.clearPCBDisplay = function () {
-            var table = document.getElementById('pcb');
-            table.innerHTML = ' <table id="pcb" class="table table-responsive text-center">' +
-                '   <tr>' +
-                '    <th>PID</th>' +
-                '    <th>PC</th>' +
-                '    <th>Acc</th>' +
-                '    <th>XReg</th>' +
-                '    <th>YReg</th>' +
-                '    <th>ZFlag</th>' +
-                '    <th>Status</th>' +
-                '   </tr>' +
-                ' </table>';
         };
         return Control;
     }());

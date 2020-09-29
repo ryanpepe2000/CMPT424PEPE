@@ -36,7 +36,7 @@ var TSOS;
             this.Yreg = 0;
             this.Zflag = 0;
             this.isExecuting = false;
-            // Populate Instruction Array
+            // Populate Instruction Array with IR, mneumontic, pcincrements, and the static Instruction function
             this.instructionList[0] = (new Instruction("A9", "LDA", 2, Instruction.loadAccConstant));
             this.instructionList[1] = (new Instruction("AD", "LDA", 3, Instruction.loadAccMemory));
             this.instructionList[2] = (new Instruction("8D", "STA", 3, Instruction.storeAcc));
@@ -52,11 +52,13 @@ var TSOS;
             this.instructionList[12] = (new Instruction("EE", "INC", 3, Instruction.incrementValue));
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         };
+        // Executes once per cpu clock pulse if there are user processes in execution
         Cpu.prototype.cycle = function () {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
             this.execute();
+            // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
             }
@@ -67,22 +69,20 @@ var TSOS;
                 var pcb = _a[_i];
                 if (pcb.state === "Executing") {
                     var instruction = this.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC)));
-                    this.runInstruction(instruction, pcb);
+                    var pcInc = instruction.getPCInc();
+                    instruction.getCallback()([
+                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 1)),
+                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 2)) // The following item in memory
+                    ]);
+                    if (instruction.getMneumonic() === "BRK") {
+                        pcb.setState("Finished");
+                    }
+                    _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
                 }
             }
         };
-        Cpu.prototype.runInstruction = function (instruction, pcb) {
-            var pcInc = instruction.getPCInc();
-            instruction.getCallback()([
-                _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 1)),
-                _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 2)) // The following item in memory
-            ]);
-            if (instruction.getMneumonic() === "BRK") {
-                pcb.setState("Finished");
-            }
-            _CPU.addPc(pcInc);
-        };
+        // Gets the instruction from a provided OP code
         Cpu.prototype.getInstruction = function (opCode) {
             for (var i = 0; i < this.instructionList.length; i++) {
                 if (this.instructionList[i].getOpCode() === opCode) {
@@ -90,6 +90,7 @@ var TSOS;
                 }
             }
         };
+        // Begins execution of a process. To be called by shellRun
         Cpu.prototype.startProcess = function (pcb) {
             pcb.setState("Executing");
             this.PC = pcb.pc;
@@ -101,6 +102,7 @@ var TSOS;
                 this.isExecuting = true;
             }
         };
+        // Updates the PCB to match the current CPU's status
         Cpu.prototype.updatePCB = function (pcb) {
             pcb.setPC(this.PC);
             pcb.setAcc(this.Acc);
@@ -108,12 +110,13 @@ var TSOS;
             pcb.setYReg(this.Yreg);
             pcb.setZFlag(this.Zflag);
         };
+        // Getters and setters for all CPU attributes
         Cpu.prototype.getPC = function () {
             return this.PC;
         };
         Cpu.prototype.addPc = function (amount) {
             this.PC += amount;
-            if (this.PC > MEMORY_LENGTH) {
+            if (this.PC > MEMORY_LENGTH) { // If the PC overflows, it should become remainder
                 this.PC = (this.PC % MEMORY_LENGTH);
             }
         };
@@ -147,6 +150,7 @@ var TSOS;
         return Cpu;
     }());
     TSOS.Cpu = Cpu;
+    // Class to contain all attributes and static execution commands for Processes
     var Instruction = /** @class */ (function () {
         function Instruction(opCode, mneumonic, pcIncrement, callback) {
             this.opCode = opCode;
@@ -154,6 +158,7 @@ var TSOS;
             this.pcIncrement = pcIncrement;
             this.callback = callback;
         }
+        // Getters and setters
         Instruction.prototype.getOpCode = function () {
             return this.opCode;
         };
@@ -178,7 +183,7 @@ var TSOS;
             var address = params[1] + params[0];
             var val = TSOS.Utils.decToHex(_CPU.getAcc());
             if (val === "0")
-                val = "00";
+                val = "00"; // Ensures the value being stored is in proper format
             _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), val);
         };
         Instruction.addWithCarry = function (params) {
@@ -200,12 +205,12 @@ var TSOS;
             _CPU.setYReg(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.noOperation = function () {
-            return;
+            return; // Does nothing
         };
-        // Should be a system call
+        // This is a system call to ensure that all
+        // break logic is executed by Kernel (God)
         Instruction["break"] = function () {
-            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["An error has occurred while processing user code"]));
-            _MemoryManager.clearMemory();
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished."]));
         };
         Instruction.compareXReg = function (params) {
             var address = params[1] + params[0];
@@ -213,15 +218,15 @@ var TSOS;
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         };
         Instruction.branchBytes = function (params) {
-            if (_CPU.getZFlag() === 0) {
+            if (_CPU.getZFlag() === 0) { // Only branches if z flag is not set
                 var numBytes = TSOS.Utils.hexToDec(params[0]);
-                _CPU.addPc(numBytes);
+                _CPU.addPc(numBytes); // Modulo operator in addPC will deal with overflow
             }
         };
         Instruction.incrementValue = function (params) {
             var address = params[1] + params[0];
             if (_MemoryAccessor.readByte(address).toUpperCase() === "FF")
-                return;
+                return; //ToDo: Update this case to a system call
             _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         };
         Instruction.systemCall = function () {
@@ -232,12 +237,12 @@ var TSOS;
             else if (_CPU.getXReg() === 2) {
                 var index = _CPU.getYReg();
                 var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(index));
-                while (val !== "0" && val !== "00") {
+                while (val !== "0" && val !== "00") { // Format checks
                     retVal += String.fromCharCode(TSOS.Utils.hexToDec(val));
                     val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(++index));
                 }
             }
-            else {
+            else { // Only sends a system call if absolutely necessary
                 return;
             }
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PRINT_PROCESS_IRQ, [retVal]));

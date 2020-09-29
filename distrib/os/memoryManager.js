@@ -9,6 +9,7 @@ var TSOS;
     var MemoryManager = /** @class */ (function () {
         function MemoryManager() {
         }
+        // Returns true if memory is available (all memory is untaken)
         MemoryManager.memoryAvailable = function (programLength) {
             if (programLength > _Memory.memory.length)
                 return false;
@@ -17,9 +18,6 @@ var TSOS;
                     return false;
             }
             return true;
-        };
-        MemoryManager.prototype.clearMemory = function () {
-            _Memory.clearMemory();
         };
         return MemoryManager;
     }());
