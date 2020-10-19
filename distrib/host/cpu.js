@@ -51,6 +51,10 @@ var TSOS;
             this.instructionList[11] = (new Instruction("D0", "BNE", 2, Instruction.branchBytes));
             this.instructionList[12] = (new Instruction("EE", "INC", 3, Instruction.incrementValue));
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
+            this.instructionList[14] = (new Instruction("8A", "TXA", 1, Instruction.loadAccX));
+            this.instructionList[15] = (new Instruction("98", "TYA", 1, Instruction.loadAccY));
+            this.instructionList[16] = (new Instruction("AA", "TAX", 1, Instruction.loadXACC));
+            this.instructionList[17] = (new Instruction("A8", "TAY", 1, Instruction.loadYACC));
         };
         // Executes once per cpu clock pulse if there are user processes in execution
         Cpu.prototype.cycle = function () {
@@ -229,17 +233,48 @@ var TSOS;
                 return; //ToDo: Update this case to a system call
             _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         };
-        Instruction.systemCall = function () {
+        /*
+        public static systemCall() {
+            let retVal = "";
+            if (_CPU.getXReg() === 1) {
+                retVal += _CPU.getYReg();
+            } else if (_CPU.getXReg() === 2) {
+                let index = _CPU.getYReg();
+                let val = _MemoryAccessor.readByte(Utils.decToHex(index));
+                while(val !== "0" && val !== "00"){ // Format checks
+                    retVal += String.fromCharCode(Utils.hexToDec(val));
+                    val = _MemoryAccessor.readByte(Utils.decToHex(++index));
+                }
+            } else {   // Only sends a system call if absolutely necessary
+                return;
+            }
+            _KernelInterruptQueue.enqueue(new Interrupt(PRINT_PROCESS_IRQ, [retVal]));
+        }
+        */
+        // FUNCTIONS USED IN ORGAN ARCH FOR TESTING
+        Instruction.loadXACC = function () {
+            _CPU.setXReg(_CPU.getAcc());
+        };
+        Instruction.loadYACC = function () {
+            _CPU.setYReg(_CPU.getAcc());
+        };
+        Instruction.loadAccX = function () {
+            _CPU.setAcc(_CPU.getXReg());
+        };
+        Instruction.loadAccY = function () {
+            _CPU.setAcc(_CPU.getYReg());
+        };
+        Instruction.systemCall = function (params) {
             var retVal = "";
             if (_CPU.getXReg() === 1) {
                 retVal += _CPU.getYReg();
             }
             else if (_CPU.getXReg() === 2) {
-                var index = _CPU.getYReg();
-                var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(index));
+                var address = TSOS.Utils.hexToDec(params[1] + params[0]);
+                var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(address));
                 while (val !== "0" && val !== "00") { // Format checks
                     retVal += String.fromCharCode(TSOS.Utils.hexToDec(val));
-                    val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(++index));
+                    val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(++address));
                 }
             }
             else { // Only sends a system call if absolutely necessary

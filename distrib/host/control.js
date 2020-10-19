@@ -209,14 +209,12 @@ var TSOS;
         };
         // Applies color the current IR and its parameters
         Control.highlightMemoryDisplay = function () {
-            var table = document.getElementById("memory");
             var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
             var tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
             if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
                 for (var offset = 0; offset < instr.getPCInc(); offset++) {
                     var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
-                    table.scrollTop = cell.offset().top;
                     if (offset === 0) {
                         cell.css("color", "green");
                     }
