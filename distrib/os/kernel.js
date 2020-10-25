@@ -156,7 +156,6 @@ var TSOS;
             _Console.putText(params[0]);
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
-            _MemoryAccessor.clearMemory();
             _CPU.init();
         };
         //

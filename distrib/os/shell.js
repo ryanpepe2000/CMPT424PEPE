@@ -360,11 +360,13 @@ var TSOS;
         Shell.prototype.shellLoad = function (args) {
             if (Shell.validateCode()) {
                 var userCode = document.getElementById("taProgramInput").value.split(" ");
-                if (TSOS.MemoryManager.memoryAvailable(userCode.length)) {
-                    var pcb = _ProcessManager.createProcess();
-                    // Use length -1 because split adds an extra "" element at end
+                if (TSOS.MemoryManager.memoryAvailable()) {
+                    var segment = TSOS.MemoryManager.getAvailableSegment();
+                    var pcb = _ProcessManager.createProcess(segment);
+                    pcb.setPC(segment * MEMORY_LENGTH);
+                    // Use length-1 because split adds an extra "" element at end
                     for (var i = 0; i < userCode.length - 1; i += 0x1) {
-                        _MemoryAccessor.writeByte(i, userCode[i]);
+                        _MemoryAccessor.writeByte(TSOS.MemoryManager.translateAddress(i, segment), userCode[i]);
                     }
                     _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                 }

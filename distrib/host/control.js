@@ -159,7 +159,7 @@ var TSOS;
             var table = document.getElementById('pcb');
             var tableContent = "<tbody>" +
                 "<tr>" +
-                "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th>" +
+                "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th><th>Segment</th>" +
                 "</tr>";
             if (_ProcessManager.getProcessList().length > 0) {
                 for (var pid = 0; pid < _ProcessManager.getProcessList().length; pid++) {
@@ -172,6 +172,7 @@ var TSOS;
                         ("<td>" + process.getYReg() + "</td>") +
                         ("<td>" + process.getZFlag() + "</td>") +
                         ("<td>" + process.getState() + "</td>") +
+                        ("<td>" + process.getSegment() + "</td>") +
                         "</tr>");
                 }
             }
@@ -192,7 +193,7 @@ var TSOS;
                 // Need to keep track of current search index and append 8 cells with proper id
                 // to the table
                 for (var j = i; j < i + 8; j += 0x1) {
-                    var cell = _Memory.getMemory(j.toString()).toUpperCase();
+                    var cell = _Memory.getMemory(j.toString());
                     tableContent += "<td id=\"mem-cell-" + j + "\">" + cell + "</td>";
                 }
                 tableContent += "</tr>";
@@ -204,19 +205,17 @@ var TSOS;
         Control.updateMemoryDisplay = function () {
             for (var i = 0; i < _Memory.memory.length; i++) {
                 var element = $("#mem-cell-" + i);
-                element.html(_MemoryAccessor.readByte(TSOS.Utils.decToHex(i)));
+                element.html(_Memory.getMemory(TSOS.Utils.decToHex(i)));
             }
         };
         // Applies color the current IR and its parameters
         Control.highlightMemoryDisplay = function () {
-            var table = document.getElementById("memory");
             var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
             var tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
             if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
                 for (var offset = 0; offset < instr.getPCInc(); offset++) {
                     var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
-                    table.scrollTop = cell.offset().top;
                     if (offset === 0) {
                         cell.css("color", "green");
                     }

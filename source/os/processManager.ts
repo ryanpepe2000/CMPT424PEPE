@@ -19,8 +19,8 @@ module TSOS {
             return this.processes;
         }
 
-        public createProcess(): ProcessControlBlock {
-            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID());
+        public createProcess(segment: number): ProcessControlBlock {
+            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID(), segment);
             this.processes[this.processes.length] = pcb;
             return pcb;
         }
@@ -42,6 +42,7 @@ module TSOS {
 
     export class ProcessControlBlock {
         constructor(public pid: number,
+                    public segment: number,
                     public pc: number = 0,
                     public acc: number = 0,
                     public xReg: number = 0,
@@ -111,6 +112,10 @@ module TSOS {
 
         public setState(state: string) {
             this.state = state;
+        }
+
+        public getSegment(): number{
+            return this.segment;
         }
     }
 }

@@ -20,6 +20,7 @@ module TSOS {
                     public Xreg: number = 0,
                     public Yreg: number = 0,
                     public Zflag: number = 0,
+                    public segment: number = 0,
                     public isExecuting: boolean = false,
                     public instructionList: Array<Instruction> = new Array<Instruction>(11)) {
 
@@ -31,6 +32,7 @@ module TSOS {
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.segment = 0;
             this.isExecuting = false;
             // Populate Instruction Array with IR, mneumontic, pcincrements, and the static Instruction function
             this.instructionList[0] =  (new Instruction("A9", "LDA", 2, Instruction.loadAccConstant));
@@ -97,6 +99,7 @@ module TSOS {
             this.Xreg = pcb.xReg;
             this.Yreg = pcb.yReg;
             this.Zflag = pcb.zFlag;
+            this.segment = pcb.segment;
             if (!_SingleStep){
                 this.isExecuting = true;
             }
@@ -118,8 +121,8 @@ module TSOS {
 
         public addPc(amount: number){
             this.PC += amount;
-            if (this.PC > MEMORY_LENGTH){    // If the PC overflows, it should become remainder
-                this.PC = (this.PC % MEMORY_LENGTH);
+            if (this.PC > (MEMORY_LENGTH * this.segment)){    // If the PC overflows, it should become remainder
+                this.PC = (this.PC % MEMORY_LENGTH) + (this.segment * MEMORY_LENGTH);
             }
         }
 

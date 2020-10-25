@@ -18,8 +18,8 @@ var TSOS;
         ProcessManager.prototype.getProcessList = function () {
             return this.processes;
         };
-        ProcessManager.prototype.createProcess = function () {
-            var pcb = new ProcessControlBlock(this.getNextPID());
+        ProcessManager.prototype.createProcess = function (segment) {
+            var pcb = new ProcessControlBlock(this.getNextPID(), segment);
             this.processes[this.processes.length] = pcb;
             return pcb;
         };
@@ -39,7 +39,7 @@ var TSOS;
     }());
     TSOS.ProcessManager = ProcessManager;
     var ProcessControlBlock = /** @class */ (function () {
-        function ProcessControlBlock(pid, pc, acc, xReg, yReg, zFlag, state) {
+        function ProcessControlBlock(pid, segment, pc, acc, xReg, yReg, zFlag, state) {
             if (pc === void 0) { pc = 0; }
             if (acc === void 0) { acc = 0; }
             if (xReg === void 0) { xReg = 0; }
@@ -47,6 +47,7 @@ var TSOS;
             if (zFlag === void 0) { zFlag = 0; }
             if (state === void 0) { state = "Waiting"; }
             this.pid = pid;
+            this.segment = segment;
             this.pc = pc;
             this.acc = acc;
             this.xReg = xReg;
@@ -101,6 +102,9 @@ var TSOS;
         };
         ProcessControlBlock.prototype.setState = function (state) {
             this.state = state;
+        };
+        ProcessControlBlock.prototype.getSegment = function () {
+            return this.segment;
         };
         return ProcessControlBlock;
     }());

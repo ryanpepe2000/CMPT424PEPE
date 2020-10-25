@@ -431,11 +431,13 @@ module TSOS {
         public shellLoad(args: string[]) {
             if (Shell.validateCode()){
                 let userCode = (<HTMLInputElement> document.getElementById("taProgramInput")).value.split(" ");
-                if (MemoryManager.memoryAvailable(userCode.length)){
-                    let pcb: ProcessControlBlock = _ProcessManager.createProcess();
-                    // Use length -1 because split adds an extra "" element at end
+                if (MemoryManager.memoryAvailable()){
+                    let segment = MemoryManager.getAvailableSegment();
+                    let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
+                    pcb.setPC(segment * MEMORY_LENGTH);
+                    // Use length-1 because split adds an extra "" element at end
                     for (let i = 0; i < userCode.length - 1; i+=0x1){
-                        _MemoryAccessor.writeByte(i, userCode[i]);
+                        _MemoryAccessor.writeByte(MemoryManager.translateAddress(i, segment), userCode[i]);
                     }
                     _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                 } else {

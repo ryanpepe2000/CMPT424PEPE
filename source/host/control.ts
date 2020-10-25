@@ -188,7 +188,7 @@ module TSOS {
             let tableContent =
                 "<tbody>" +
                     "<tr>" +
-                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th>" +
+                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th><th>Segment</th>" +
                     "</tr>";
             if (_ProcessManager.getProcessList().length > 0){
                 for (let pid = 0; pid < _ProcessManager.getProcessList().length; pid++){
@@ -202,6 +202,7 @@ module TSOS {
                             `<td>${process.getYReg()}</td>` +
                             `<td>${process.getZFlag()}</td>` +
                             `<td>${process.getState()}</td>` +
+                            `<td>${process.getSegment()}</td>` +
                         `</tr>`
                     );
                 }
@@ -225,7 +226,7 @@ module TSOS {
                 // Need to keep track of current search index and append 8 cells with proper id
                 // to the table
                 for (let j = i; j < i + 8; j+=0x1){
-                    let cell = _Memory.getMemory(j.toString()).toUpperCase();
+                    let cell = _Memory.getMemory(j.toString());
                     tableContent+=`<td id="mem-cell-${j}">${cell}</td>`;
                 }
                 tableContent += "</tr>";
@@ -238,7 +239,7 @@ module TSOS {
         static updateMemoryDisplay() {
             for (let i = 0; i < _Memory.memory.length; i++) {
                 let element = $(`#mem-cell-${i}`);
-                element.html(_MemoryAccessor.readByte(Utils.decToHex(i)));
+                element.html(_Memory.getMemory(Utils.decToHex(i)));
             }
         }
 

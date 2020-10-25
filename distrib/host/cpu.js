@@ -13,12 +13,13 @@
 var TSOS;
 (function (TSOS) {
     var Cpu = /** @class */ (function () {
-        function Cpu(PC, Acc, Xreg, Yreg, Zflag, isExecuting, instructionList) {
+        function Cpu(PC, Acc, Xreg, Yreg, Zflag, segment, isExecuting, instructionList) {
             if (PC === void 0) { PC = 0; }
             if (Acc === void 0) { Acc = 0; }
             if (Xreg === void 0) { Xreg = 0; }
             if (Yreg === void 0) { Yreg = 0; }
             if (Zflag === void 0) { Zflag = 0; }
+            if (segment === void 0) { segment = 0; }
             if (isExecuting === void 0) { isExecuting = false; }
             if (instructionList === void 0) { instructionList = new Array(11); }
             this.PC = PC;
@@ -26,6 +27,7 @@ var TSOS;
             this.Xreg = Xreg;
             this.Yreg = Yreg;
             this.Zflag = Zflag;
+            this.segment = segment;
             this.isExecuting = isExecuting;
             this.instructionList = instructionList;
         }
@@ -35,6 +37,7 @@ var TSOS;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.segment = 0;
             this.isExecuting = false;
             // Populate Instruction Array with IR, mneumontic, pcincrements, and the static Instruction function
             this.instructionList[0] = (new Instruction("A9", "LDA", 2, Instruction.loadAccConstant));
@@ -98,6 +101,7 @@ var TSOS;
             this.Xreg = pcb.xReg;
             this.Yreg = pcb.yReg;
             this.Zflag = pcb.zFlag;
+            this.segment = pcb.segment;
             if (!_SingleStep) {
                 this.isExecuting = true;
             }
@@ -116,8 +120,8 @@ var TSOS;
         };
         Cpu.prototype.addPc = function (amount) {
             this.PC += amount;
-            if (this.PC > MEMORY_LENGTH) { // If the PC overflows, it should become remainder
-                this.PC = (this.PC % MEMORY_LENGTH);
+            if (this.PC > (MEMORY_LENGTH * this.segment)) { // If the PC overflows, it should become remainder
+                this.PC = (this.PC % MEMORY_LENGTH) + (this.segment * MEMORY_LENGTH);
             }
         };
         Cpu.prototype.getAcc = function () {

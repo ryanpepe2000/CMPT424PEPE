@@ -10,7 +10,7 @@ module TSOS {
     export class Memory {
         memory: Array<string>;
         constructor() {
-            this.memory = new Array<string>(MEMORY_LENGTH);
+            this.memory = new Array<string>(MEMORY_LENGTH * MEMORY_BLOCKS);
         }
 
         public init(): void {
@@ -27,8 +27,8 @@ module TSOS {
 
         // Used to reset the values of every bit in memory
         resetMemory(): void {
-            for (let i = 0; i < _Memory.memory.length; i++){
-                _Memory.setMemory(i, "00");
+            for (let i = 0; i < this.memory.length; i++){
+                this.setMemory(i, "00");
             }
         }
 
@@ -38,7 +38,7 @@ module TSOS {
         }
         setMemory(address:number, val: string): boolean{
             try{
-                this.memory[Utils.decToHex(address)] = val;
+                this.memory[address] = val;
             } catch (e){
                 _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
                 return false;

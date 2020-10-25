@@ -8,7 +8,7 @@ var TSOS;
 (function (TSOS) {
     var Memory = /** @class */ (function () {
         function Memory() {
-            this.memory = new Array(MEMORY_LENGTH);
+            this.memory = new Array(MEMORY_LENGTH * MEMORY_BLOCKS);
         }
         Memory.prototype.init = function () {
             this.initMemory();
@@ -22,8 +22,8 @@ var TSOS;
         };
         // Used to reset the values of every bit in memory
         Memory.prototype.resetMemory = function () {
-            for (var i = 0; i < _Memory.memory.length; i++) {
-                _Memory.setMemory(i, "00");
+            for (var i = 0; i < this.memory.length; i++) {
+                this.setMemory(i, "00");
             }
         };
         // Methods to be used by memory accessor
@@ -32,7 +32,7 @@ var TSOS;
         };
         Memory.prototype.setMemory = function (address, val) {
             try {
-                this.memory[TSOS.Utils.decToHex(address)] = val;
+                this.memory[address] = val;
             }
             catch (e) {
                 _Kernel.krnTrace("Unable to set memory address " + address + " to " + val);
