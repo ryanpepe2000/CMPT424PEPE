@@ -360,15 +360,18 @@ var TSOS;
         Shell.prototype.shellLoad = function (args) {
             if (Shell.validateCode()) {
                 var userCode = document.getElementById("taProgramInput").value.split(" ");
-                if (TSOS.MemoryManager.memoryAvailable()) {
-                    var segment = TSOS.MemoryManager.getAvailableSegment();
-                    var pcb = _ProcessManager.createProcess(segment);
-                    pcb.setPC(segment * MEMORY_LENGTH);
-                    // Use length-1 because split adds an extra "" element at end
-                    for (var i = 0; i < userCode.length - 1; i += 0x1) {
-                        _MemoryAccessor.writeByte(TSOS.MemoryManager.translateAddress(i, segment), userCode[i]);
+                if (_MMU.memoryAvailable()) {
+                    var segment = _MMU.getAvailableSegment();
+                    // Ensure user code can fit in one memory block
+                    if (userCode.length - 1 > MEMORY_LENGTH) {
+                        _StdOut.putText("Valid Code. Program is too long.");
+                        return;
                     }
-                    _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                    else {
+                        var pcb = _ProcessManager.createProcess(segment);
+                        _MMU.fillSegment(segment, userCode);
+                        _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                    }
                 }
                 else {
                     _StdOut.putText("Valid Code. Memory is not currently available.");

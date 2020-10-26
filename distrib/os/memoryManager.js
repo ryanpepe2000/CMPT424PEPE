@@ -8,33 +8,57 @@ var TSOS;
 (function (TSOS) {
     var MemoryManager = /** @class */ (function () {
         function MemoryManager() {
+            this.availableSegments = new Array(MEMORY_BLOCKS);
+            for (var i = 0; i < MEMORY_BLOCKS; i++) {
+                this.availableSegments[i] = true;
+            }
         }
         // Returns true if a memory segment is available (all memory is untaken)
-        MemoryManager.memoryAvailable = function () {
-            for (var i = 0; i < MEMORY_BLOCKS; i++) {
-                if (MemoryManager.segmentAvailable(i))
-                    return true;
-            }
-            return false;
+        MemoryManager.prototype.memoryAvailable = function () {
+            return this.availableSegments.indexOf(true) > -1;
         };
-        MemoryManager.segmentAvailable = function (segment) {
-            if (segment >= MEMORY_BLOCKS || segment < 0)
-                return false;
-            for (var i = (MEMORY_LENGTH * segment); i < (MEMORY_LENGTH * segment) + MEMORY_LENGTH - 1; i++) {
-                if (_Memory.getMemory(i.toString(16)) !== "00")
-                    return false;
-            }
-            return true;
+        MemoryManager.prototype.segmentAvailable = function (segment) {
+            return this.availableSegments[segment];
         };
-        MemoryManager.getAvailableSegment = function () {
-            for (var i = 0; i < MEMORY_BLOCKS; i++) {
-                if (this.segmentAvailable(i))
+        MemoryManager.prototype.getAvailableSegment = function () {
+            return this.availableSegments.indexOf(true);
+        };
+        MemoryManager.prototype.translateAddress = function (address, segment) {
+            return ((segment * MEMORY_LENGTH) + address);
+        };
+        MemoryManager.prototype.fillSegment = function (segment, userCode) {
+            this.availableSegments[segment] = false;
+            // Write bytes to proper memory block
+            for (var i = 0; i < userCode.length - 1; i += 0x1) {
+                _MemoryAccessor.writeByte(_MMU.translateAddress(i, segment), userCode[i]);
+            }
+        };
+        MemoryManager.prototype.emptySegment = function (segment) {
+            this.availableSegments[segment] = true;
+        };
+        MemoryManager.prototype.getSegmentBounds = function (segment) {
+            if (segment == 0) {
+                return [0, MEMORY_LENGTH - 1];
+            }
+            else if (segment == 1) {
+                return [MEMORY_LENGTH, (MEMORY_LENGTH * 2) - 1];
+            }
+            else if (segment == 2) {
+                return [(MEMORY_LENGTH * 2), (MEMORY_LENGTH * 3) - 1];
+            }
+        };
+        MemoryManager.prototype.getSegment = function (address) {
+            for (var i = 0; i < this.availableSegments.length; i++) {
+                var bounds = this.getSegmentBounds(i);
+                if (address >= bounds[0] && address < bounds[1]) {
                     return i;
+                }
             }
             return -1;
         };
-        MemoryManager.translateAddress = function (address, segment) {
-            return ((segment * MEMORY_LENGTH) + address);
+        MemoryManager.prototype.getLogicalAddress = function (address) {
+            var segment = this.getSegment(address);
+            return this.translateAddress(address, segment);
         };
         return MemoryManager;
     }());

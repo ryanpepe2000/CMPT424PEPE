@@ -7,33 +7,67 @@
 
 module TSOS {
     export class MemoryManager {
+        private availableSegments: Array<boolean>;
         constructor() {
+            this.availableSegments = new Array<boolean>(MEMORY_BLOCKS);
+            for (let i = 0; i < MEMORY_BLOCKS; i++){
+                this.availableSegments[i] = true;
+            }
         }
+
         // Returns true if a memory segment is available (all memory is untaken)
-        public static memoryAvailable(): boolean{
-            for (let i = 0; i < MEMORY_BLOCKS; i++){
-                if (MemoryManager.segmentAvailable(i)) return true;
-            }
-            return false;
+        public memoryAvailable(): boolean{
+            return this.availableSegments.indexOf(true) > -1;
         }
 
-        public static segmentAvailable(segment: number): boolean {
-            if (segment >= MEMORY_BLOCKS || segment < 0) return false;
-            for (let i = (MEMORY_LENGTH * segment); i < (MEMORY_LENGTH * segment) + MEMORY_LENGTH - 1; i++){
-                if (_Memory.getMemory(i.toString(16)) !== "00") return false;
-            }
-            return true;
+        public segmentAvailable(segment: number): boolean {
+            return this.availableSegments[segment];
         }
 
-        public static getAvailableSegment(): number{
-            for (let i = 0; i < MEMORY_BLOCKS; i++){
-                if (this.segmentAvailable(i)) return i;
+        public getAvailableSegment(): number{
+            return this.availableSegments.indexOf(true);
+        }
+
+        public translateAddress(address: number, segment: number): number{
+            return ((segment * MEMORY_LENGTH) + address);
+        }
+
+        public fillSegment(segment: number, userCode: string[]){
+            this.availableSegments[segment] = false;
+            // Write bytes to proper memory block
+            for (let i = 0; i < userCode.length - 1; i+=0x1){
+                _MemoryAccessor.writeByte(_MMU.translateAddress(i, segment), userCode[i]);
+            }
+        }
+
+        public emptySegment(segment: number){
+            this.availableSegments[segment] = true;
+        }
+
+        public getSegmentBounds(segment: number){
+            if (segment == 0) {
+                return [0, MEMORY_LENGTH-1];
+            } else if (segment == 1){
+                return [MEMORY_LENGTH, (MEMORY_LENGTH*2)-1];
+            } else if (segment == 2){
+                return [(MEMORY_LENGTH*2), (MEMORY_LENGTH*3)-1];
+            }
+        }
+
+        public getSegment(address: number){
+            for (let i = 0; i < this.availableSegments.length; i++){
+                let bounds = this.getSegmentBounds(i);
+                if (address >= bounds[0] && address < bounds[1]){
+                    return i;
+                }
             }
             return -1;
         }
 
-        public static translateAddress(address: number, segment: number): number{
-            return ((segment * MEMORY_LENGTH) + address);
+        public getLogicalAddress(address: number){
+            let segment = this.getSegment(address);
+            return this.translateAddress(address, segment);
         }
     }
+
 }

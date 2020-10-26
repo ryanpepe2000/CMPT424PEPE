@@ -71,11 +71,12 @@ var TSOS;
             for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
                 var pcb = _a[_i];
                 if (pcb.state === "Executing") {
-                    var instruction = this.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC)));
+                    var instruction = this.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
                     var pcInc = instruction.getPCInc();
+                    // Need to pass proper physical addresses using logical address and segments
                     instruction.getCallback()([
-                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 1)),
-                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(this.PC + 2)) // The following item in memory
+                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(this.PC + 1, _CPU.segment))),
+                        _MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment))) // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
                         pcb.setState("Finished");
@@ -120,8 +121,8 @@ var TSOS;
         };
         Cpu.prototype.addPc = function (amount) {
             this.PC += amount;
-            if (this.PC > (MEMORY_LENGTH * this.segment)) { // If the PC overflows, it should become remainder
-                this.PC = (this.PC % MEMORY_LENGTH) + (this.segment * MEMORY_LENGTH);
+            if (this.PC > MEMORY_LENGTH) { // If the PC overflows, it should become remainder
+                this.PC = this.PC % MEMORY_LENGTH;
             }
         };
         Cpu.prototype.getAcc = function () {
@@ -181,17 +182,20 @@ var TSOS;
         };
         Instruction.loadAccMemory = function (params) {
             var address = params[1] + params[0];
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             _CPU.setAcc(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.storeAcc = function (params) {
             var address = params[1] + params[0];
+            var pos = _MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment);
             var val = TSOS.Utils.decToHex(_CPU.getAcc());
             if (val === "0")
                 val = "00"; // Ensures the value being stored is in proper format
-            _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), val);
+            _MemoryAccessor.writeByte(pos, val);
         };
         Instruction.addWithCarry = function (params) {
             var address = params[1] + params[0];
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             _CPU.setAcc(_CPU.getAcc() + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.loadXConstant = function (params) {
@@ -199,6 +203,7 @@ var TSOS;
         };
         Instruction.loadXMemory = function (params) {
             var address = params[1] + params[0];
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             _CPU.setXReg(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.loadYConstant = function (params) {
@@ -206,6 +211,7 @@ var TSOS;
         };
         Instruction.loadYMemory = function (params) {
             var address = params[1] + params[0];
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             _CPU.setYReg(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.noOperation = function () {
@@ -218,6 +224,8 @@ var TSOS;
         };
         Instruction.compareXReg = function (params) {
             var address = params[1] + params[0];
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
+            console.log("Trouble code -- reading bytes address: " + address + " as " + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
             TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) === _CPU.getXReg() ?
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         };
@@ -229,9 +237,10 @@ var TSOS;
         };
         Instruction.incrementValue = function (params) {
             var address = params[1] + params[0];
+            var pos = _MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment);
             if (_MemoryAccessor.readByte(address).toUpperCase() === "FF")
                 return; //ToDo: Update this case to a system call
-            _MemoryAccessor.writeByte(TSOS.Utils.hexToDec(address), TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
+            _MemoryAccessor.writeByte(pos, TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         };
         Instruction.systemCall = function () {
             var retVal = "";

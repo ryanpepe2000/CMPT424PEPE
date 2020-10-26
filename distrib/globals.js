@@ -31,7 +31,7 @@ var _Quantum = 1;
 var _Memory;
 var _MemoryAccessor;
 // Software (OS)
-var _MemoryManager = null;
+var _MMU;
 // Process Implementations
 var _ProcessManager = null;
 var _OSclock = 0; // Page 23.

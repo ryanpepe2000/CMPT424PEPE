@@ -67,11 +67,12 @@ module TSOS {
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Executing") {
-                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(this.PC)));
+                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
                     let pcInc = instruction.getPCInc();
+                    // Need to pass proper physical addresses using logical address and segments
                     instruction.getCallback()([
-                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 1)),  // Next item in memory
-                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 2))   // The following item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 1, _CPU.segment))),  // Next item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment)))   // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
                         pcb.setState("Finished")
@@ -121,8 +122,8 @@ module TSOS {
 
         public addPc(amount: number){
             this.PC += amount;
-            if (this.PC > (MEMORY_LENGTH * this.segment)){    // If the PC overflows, it should become remainder
-                this.PC = (this.PC % MEMORY_LENGTH) + (this.segment * MEMORY_LENGTH);
+            if (this.PC > MEMORY_LENGTH){    // If the PC overflows, it should become remainder
+                this.PC = this.PC % MEMORY_LENGTH;
             }
         }
 
@@ -195,18 +196,21 @@ module TSOS {
 
         public static loadAccMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setAcc(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
         public static storeAcc(params: string[]){
             let address = params[1] + params[0];
+            let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
             let val = Utils.decToHex(_CPU.getAcc());
             if (val === "0") val = "00"; // Ensures the value being stored is in proper format
-            _MemoryAccessor.writeByte(Utils.hexToDec(address), val);
+            _MemoryAccessor.writeByte(pos, val);
         }
 
         public static addWithCarry(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setAcc(_CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address)))
         }
 
@@ -216,6 +220,7 @@ module TSOS {
 
         public static loadXMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setXReg(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
@@ -225,6 +230,7 @@ module TSOS {
 
         public static loadYMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setYReg(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
@@ -240,6 +246,10 @@ module TSOS {
 
         public static compareXReg(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
+
+            console.log("Trouble code -- reading bytes address: " + address + " as " + Utils.hexToDec(_MemoryAccessor.readByte(address)));
+
             Utils.hexToDec(_MemoryAccessor.readByte(address)) === _CPU.getXReg() ?
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         }
@@ -253,9 +263,9 @@ module TSOS {
 
         public static incrementValue(params: string[]) {
             let address = params[1] + params[0];
+            let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
             if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return; //ToDo: Update this case to a system call
-            _MemoryAccessor.writeByte(Utils.hexToDec(address),
-                Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
+            _MemoryAccessor.writeByte(pos, Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
         }
 
         public static systemCall() {

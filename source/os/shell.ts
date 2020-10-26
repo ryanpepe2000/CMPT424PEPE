@@ -431,20 +431,22 @@ module TSOS {
         public shellLoad(args: string[]) {
             if (Shell.validateCode()){
                 let userCode = (<HTMLInputElement> document.getElementById("taProgramInput")).value.split(" ");
-                if (MemoryManager.memoryAvailable()){
-                    let segment = MemoryManager.getAvailableSegment();
-                    let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
-                    pcb.setPC(segment * MEMORY_LENGTH);
-                    // Use length-1 because split adds an extra "" element at end
-                    for (let i = 0; i < userCode.length - 1; i+=0x1){
-                        _MemoryAccessor.writeByte(MemoryManager.translateAddress(i, segment), userCode[i]);
+                if (_MMU.memoryAvailable()){
+                    let segment = _MMU.getAvailableSegment();
+                    // Ensure user code can fit in one memory block
+                    if (userCode.length - 1 > MEMORY_LENGTH){
+                        _StdOut.putText("Valid Code. Program is too long.");
+                        return;
+                    } else {
+                        let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
+                        _MMU.fillSegment(segment, userCode);
+                        _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                     }
-                    _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                 } else {
-                    _StdOut.putText("Valid Code. Memory is not currently available.")
+                    _StdOut.putText("Valid Code. Memory is not currently available.");
                 }
             } else {
-                _StdOut.putText("Invalid program syntax.")
+                _StdOut.putText("Invalid program syntax.");
             }
         }
 

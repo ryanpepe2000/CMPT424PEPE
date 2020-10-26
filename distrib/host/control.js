@@ -90,6 +90,7 @@ var TSOS;
             _Memory = new TSOS.Memory();
             _Memory.init();
             _MemoryAccessor = new TSOS.MemoryAccessor();
+            _MMU = new TSOS.MemoryManager();
             // Create and initialize the process manager
             _ProcessManager = new TSOS.ProcessManager();
             // ... then set the host clock pulse ...
@@ -210,12 +211,12 @@ var TSOS;
         };
         // Applies color the current IR and its parameters
         Control.highlightMemoryDisplay = function () {
-            var instr = _CPU.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_CPU.getPC())));
+            var instr = _CPU.getInstruction(_Memory.getMemory(TSOS.Utils.decToHex(_MMU.translateAddress(_CPU.getPC(), _CPU.segment))));
             var tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
             if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
                 for (var offset = 0; offset < instr.getPCInc(); offset++) {
-                    var cell = $("#mem-cell-" + (_CPU.getPC() + offset));
+                    var cell = $("#mem-cell-" + _MMU.translateAddress(_CPU.getPC() + offset, _CPU.segment));
                     if (offset === 0) {
                         cell.css("color", "green");
                     }

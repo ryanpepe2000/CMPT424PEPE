@@ -109,6 +109,7 @@ module TSOS {
             _Memory = new Memory();
             _Memory.init();
             _MemoryAccessor = new MemoryAccessor();
+            _MMU = new MemoryManager();
 
             // Create and initialize the process manager
             _ProcessManager = new ProcessManager();
@@ -245,12 +246,12 @@ module TSOS {
 
         // Applies color the current IR and its parameters
         static highlightMemoryDisplay() {
-            let instr = _CPU.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_CPU.getPC())));
+            let instr = _CPU.getInstruction(_Memory.getMemory(Utils.decToHex(_MMU.translateAddress(_CPU.getPC(), _CPU.segment))));
             let tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
             if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
                 for (let offset = 0; offset < instr.getPCInc(); offset++){
-                    let cell = $(`#mem-cell-${_CPU.getPC()+ offset}`);
+                    let cell = $(`#mem-cell-${_MMU.translateAddress(_CPU.getPC() + offset, _CPU.segment)}`);
                     if (offset === 0){
                         cell.css("color", "green");
                     } else {

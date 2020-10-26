@@ -41,7 +41,7 @@ let _Memory: TSOS.Memory;
 let _MemoryAccessor: TSOS.MemoryAccessor;
 
 // Software (OS)
-let _MemoryManager: TSOS.MemoryManager = null;
+let _MMU: TSOS.MemoryManager;
 
 // Process Implementations
 let _ProcessManager: TSOS.ProcessManager = null;
