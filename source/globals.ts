@@ -40,7 +40,7 @@ const MEMORY_BLOCKS: number = 3;
 
 // Hardware (host)
 let _CPU: TSOS.Cpu;  // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
-let _Quantum = 3;
+let _Quantum = 6;
 let _Memory: TSOS.Memory;
 let _MemoryAccessor: TSOS.MemoryAccessor;
 let _Scheduler: TSOS.Scheduler;
