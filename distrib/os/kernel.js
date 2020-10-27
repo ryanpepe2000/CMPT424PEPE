@@ -158,6 +158,7 @@ var TSOS;
         Kernel.prototype.krnContextSwitch = function (params) {
             // Temporarily commenting until krn error is resolved
             //_Scheduler.contextSwitch();
+            this.krnTrace("Performing Context Switch");
         };
         Kernel.prototype.krnBreakProcess = function (params) {
             // Puts "Program completion message" and advances line with new prompt
@@ -165,8 +166,23 @@ var TSOS;
             _Console.advanceLine();
             _Console.putText(params[0]);
             _Console.advanceLine();
+            var pcb = _ProcessManager.getPCB(params[1]);
+            if (pcb !== undefined) {
+                _Console.putText("Wait Time: " + pcb.waitingTime);
+                _Console.advanceLine();
+                _Console.putText("Turnaround Time: " + pcb.turnaroundTime);
+                _Console.advanceLine();
+            }
             _Console.putText(_OsShell.promptStr);
             _CPU.clearCPU();
+            // This will switch contexts, thereby resetting quantum
+            // (prevents zombie processes until quantum is reached)
+            try {
+                _Scheduler.contextSwitch();
+            }
+            catch (Exception) {
+                this.krnTrace("Unable to context switch");
+            }
         };
         Kernel.prototype.krnProcessError = function (params) {
             // Puts "Program completion message" and advances line with new prompt

@@ -62,7 +62,9 @@ module TSOS {
                     public xReg: number = 0,
                     public yReg: number = 0,
                     public zFlag: number = 0,
-                    public state: string = "New"){
+                    public state: string = "New",
+                    public waitingTime: number = 0,
+                    public turnaroundTime: number = 0){
         }
 
         public getPID(): number {
@@ -135,6 +137,15 @@ module TSOS {
 
         public getSegment(): number{
             return this.segment;
+        }
+
+        public incrementTime(){
+            if (this.getState() === "Running"){
+                this.turnaroundTime++;
+            } else if (this.getState() === "Ready"){
+                this.waitingTime++;
+                this.turnaroundTime++;
+            }
         }
     }
 }

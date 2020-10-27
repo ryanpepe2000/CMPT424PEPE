@@ -89,6 +89,7 @@ module TSOS {
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
                 }
+                pcb.incrementTime();
             }
         }
 
@@ -223,10 +224,10 @@ module TSOS {
             let address = params[1] + params[0];
             address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             let sum = _CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address));
-            if (sum > 256 || sum < 2){
+            if (sum >= 256 || sum < 0){
                 _KernelInterruptQueue.enqueue(new Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while adding two operands."]));
             }
-            _CPU.setAcc(_CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address)))
+            _CPU.setAcc(sum)
         }
 
         public static loadXConstant(params: string[]){
@@ -256,7 +257,7 @@ module TSOS {
         // This is a system call to ensure that all
         // break logic is executed by Kernel (God)
         public static break(): void {
-            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished."]));
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished.", _ProcessManager.getRunning().pid]));
         }
 
         public static compareXReg(params: string[]){

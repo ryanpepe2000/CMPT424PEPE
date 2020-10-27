@@ -92,6 +92,7 @@ var TSOS;
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
                 }
+                pcb.incrementTime();
             }
         };
         // Gets the instruction from a provided OP code
@@ -205,10 +206,10 @@ var TSOS;
             var address = params[1] + params[0];
             address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             var sum = _CPU.getAcc() + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address));
-            if (sum > 256 || sum < 2) {
+            if (sum >= 256 || sum < 0) {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while adding two operands."]));
             }
-            _CPU.setAcc(_CPU.getAcc() + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
+            _CPU.setAcc(sum);
         };
         Instruction.loadXConstant = function (params) {
             _CPU.setXReg(TSOS.Utils.hexToDec(params[0]));
@@ -232,7 +233,7 @@ var TSOS;
         // This is a system call to ensure that all
         // break logic is executed by Kernel (God)
         Instruction["break"] = function () {
-            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished."]));
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(BREAK_PROCESS_IRQ, ["Program execution finished.", _ProcessManager.getRunning().pid]));
         };
         Instruction.compareXReg = function (params) {
             var address = params[1] + params[0];
