@@ -42,7 +42,7 @@ var TSOS;
             _CPU.isExecuting = false;
         };
         Scheduler.prototype.executeRoundRobin = function () {
-            if (this.counter == _Quantum) {
+            if (this.counter >= _Quantum) {
                 if (_ProcessManager.getReadyQueue().getSize() >= 1) {
                     // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
                     // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
@@ -94,6 +94,7 @@ var TSOS;
             this.counter = 0;
         };
         Scheduler.prototype.updateQuantum = function () {
+            this.resetCounter();
             this.quantum = _Quantum;
         };
         return Scheduler;

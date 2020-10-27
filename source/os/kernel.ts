@@ -177,6 +177,7 @@ module TSOS {
         public krnContextSwitch(params: any[]){
             // Temporarily commenting until krn error is resolved
             //_Scheduler.contextSwitch();
+            this.krnTrace("Performing Context Switch");
         }
 
         public krnBreakProcess(params: any[]) {
@@ -185,8 +186,22 @@ module TSOS {
             _Console.advanceLine();
             _Console.putText(params[0]);
             _Console.advanceLine();
+            let pcb = _ProcessManager.getPCB(params[1]);
+            if (pcb !== undefined){
+                _Console.putText("Wait Time: " + pcb.waitingTime);
+                _Console.advanceLine();
+                _Console.putText("Turnaround Time: " + pcb.turnaroundTime);
+                _Console.advanceLine();
+            }
             _Console.putText(_OsShell.promptStr);
             _CPU.clearCPU();
+            // This will switch contexts, thereby resetting quantum
+            // (prevents zombie processes until quantum is reached)
+            try {
+                _Scheduler.contextSwitch();
+            } catch (Exception){
+                this.krnTrace("Unable to context switch")
+            }
         }
 
         public krnProcessError(params: any[]) {
