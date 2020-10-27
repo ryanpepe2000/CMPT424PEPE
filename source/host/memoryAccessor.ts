@@ -14,19 +14,11 @@ module TSOS {
         }
 
         public readByte(address: string): string{
-            console.log("Reading byte from address: " + address);
             return _Memory.getMemory(address);
         }
 
         public writeByte(address: number, value: string): boolean {
-            console.log("Writing to byte: " + address);
             return _Memory.setMemory(address, value);
-        }
-
-        // Calls the reset memory in TSOS.Memory
-        // Strange bug was preventing calling TSOS.Memory.clearMemory()
-        public clearMemory(){
-            _Memory.resetMemory();
         }
     }
 }

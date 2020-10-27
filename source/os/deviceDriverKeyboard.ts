@@ -64,7 +64,6 @@ module TSOS {
                         this.symbolList.has(keyCode)        ||   // Every symbol on traditional keyboard
                         (this.shiftedList.has(keyCode) && isShifted)) {         // All characters that should be shifted
                 // Check to see if it is necessary to convert chr to symbol
-                console.log("Long statement: " + chr);
                 if (isShifted === true) {
                     chr = this.shiftedList.get(keyCode);
                 } else if (this.symbolList.has(keyCode)){
@@ -74,7 +73,6 @@ module TSOS {
                 }
                 _KernelInputQueue.enqueue(chr);
             } else if ((keyCode == 38) || (keyCode == 40)){ // Arrow keys
-                console.log("Arrow Statement code: " + chr);
                 switch (keyCode){
                     case 38:
                         chr = "up"; // Setting to word 'up' because of interference with js chr 38

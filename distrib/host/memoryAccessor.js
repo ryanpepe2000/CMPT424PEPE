@@ -13,17 +13,10 @@ var TSOS;
         function MemoryAccessor() {
         }
         MemoryAccessor.prototype.readByte = function (address) {
-            console.log("Reading byte from address: " + address);
             return _Memory.getMemory(address);
         };
         MemoryAccessor.prototype.writeByte = function (address, value) {
-            console.log("Writing to byte: " + address);
             return _Memory.setMemory(address, value);
-        };
-        // Calls the reset memory in TSOS.Memory
-        // Strange bug was preventing calling TSOS.Memory.clearMemory()
-        MemoryAccessor.prototype.clearMemory = function () {
-            _Memory.resetMemory();
         };
         return MemoryAccessor;
     }());
