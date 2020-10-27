@@ -15,13 +15,12 @@ module TSOS {
         public runProcess(pcb: ProcessControlBlock){
             // Admitted pcb will be added to the ready queue
             _ProcessManager.getReadyQueue().enqueue(pcb.setState("Ready"));
-            this.contextSwitch();
-
             // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
             // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
 
             // Temporarily using this.contextSwitch until a solution is found.
             _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
+            this.contextSwitch();
         }
 
         public killProcess(pcb: ProcessControlBlock){
@@ -52,13 +51,13 @@ module TSOS {
         public executeRoundRobin(){
             if (this.counter == _Quantum){
                 if (_ProcessManager.getReadyQueue().getSize() >= 1){
-                    this.contextSwitch();
-
                     // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
                     // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
 
                     // Temporarily using this.contextSwitch until a solution is found.
                     _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
+                    this.contextSwitch();
+
                 }
                 this.resetCounter();
             }
@@ -105,6 +104,10 @@ module TSOS {
 
         public resetCounter(){
             this.counter = 0;
+        }
+
+        updateQuantum() {
+            this.quantum = _Quantum;
         }
     }
 }

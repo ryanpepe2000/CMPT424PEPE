@@ -81,6 +81,9 @@ var TSOS;
             // quantum
             sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "- Updates the system quantum.");
             this.commandList[this.commandList.length] = sc;
+            // ps
+            sc = new TSOS.ShellCommand(this.shellProcesses, "ps", "- Lists all processes in ready queue and their state.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -311,6 +314,9 @@ var TSOS;
                     case "quantum":
                         _StdOut.putText("Changes the number of cycles for CPU scheduling");
                         break;
+                    case "ps":
+                        _StdOut.putText("Lists all processes and their states");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -455,8 +461,7 @@ var TSOS;
         Shell.prototype.shellRun = function (args) {
             if (args.length > 0) {
                 var pcb = _ProcessManager.getPCB(parseInt(args[0]));
-                if (pcb !== null) {
-                    // ToDo: Implement this part into scheduler logic
+                if (pcb !== null && pcb.state !== "Terminated") {
                     _CPU.startProcess(pcb);
                 }
                 TSOS.Control.highlightMemoryDisplay();
@@ -492,10 +497,18 @@ var TSOS;
                 var newQuantum = parseInt(args[0]);
                 if (newQuantum !== undefined && newQuantum > 0) {
                     _Quantum = newQuantum;
+                    _Scheduler.updateQuantum();
                 }
                 else {
                     _StdOut.putText("Invalid quantum value.");
                 }
+            }
+        };
+        Shell.prototype.shellProcesses = function (args) {
+            for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
+                var pcb = _a[_i];
+                _StdOut.putText("Process " + pcb.pid + ": " + pcb.state);
+                _StdOut.advanceLine();
             }
         };
         return Shell;

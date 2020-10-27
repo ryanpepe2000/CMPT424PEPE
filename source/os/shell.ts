@@ -147,6 +147,12 @@ module TSOS {
                 "- Updates the system quantum.");
             this.commandList[this.commandList.length] = sc;
 
+            // ps
+            sc = new ShellCommand(this.shellProcesses,
+                "ps",
+                "- Lists all processes in ready queue and their state.");
+            this.commandList[this.commandList.length] = sc;
+
 
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -392,6 +398,9 @@ module TSOS {
                     case "quantum":
                         _StdOut.putText("Changes the number of cycles for CPU scheduling");
                         break;
+                    case "ps":
+                        _StdOut.putText("Lists all processes and their states");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -535,8 +544,7 @@ module TSOS {
         public shellRun(args: string[]) {
             if (args.length > 0) {
                 let pcb = _ProcessManager.getPCB(parseInt(args[0]));
-                if (pcb !== null) {
-                    // ToDo: Implement this part into scheduler logic
+                if (pcb !== null && pcb.state !== "Terminated") {
                     _CPU.startProcess(pcb);
                 }
                 Control.highlightMemoryDisplay();
@@ -577,11 +585,20 @@ module TSOS {
                 let newQuantum = parseInt(args[0]);
                 if (newQuantum !== undefined && newQuantum > 0){
                     _Quantum = newQuantum;
+                    _Scheduler.updateQuantum();
                 } else {
                     _StdOut.putText("Invalid quantum value.")
                 }
             }
         }
+
+        public shellProcesses(args: string[]) {
+            for (let pcb of _ProcessManager.getProcessList()){
+                _StdOut.putText("Process " + pcb.pid + ": " + pcb.state);
+                _StdOut.advanceLine();
+            }
+        }
+
     }
 
     // Console history is used in traversal of previous commands.

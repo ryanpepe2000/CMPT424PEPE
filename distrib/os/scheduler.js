@@ -16,11 +16,11 @@ var TSOS;
         Scheduler.prototype.runProcess = function (pcb) {
             // Admitted pcb will be added to the ready queue
             _ProcessManager.getReadyQueue().enqueue(pcb.setState("Ready"));
-            this.contextSwitch();
             // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
             // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
             // Temporarily using this.contextSwitch until a solution is found.
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH_IRQ, []));
+            this.contextSwitch();
         };
         Scheduler.prototype.killProcess = function (pcb) {
             // Enqueue/Dequeue processes until the requested process has been removed
@@ -49,11 +49,11 @@ var TSOS;
         Scheduler.prototype.executeRoundRobin = function () {
             if (this.counter == _Quantum) {
                 if (_ProcessManager.getReadyQueue().getSize() >= 1) {
-                    this.contextSwitch();
                     // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
                     // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
                     // Temporarily using this.contextSwitch until a solution is found.
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH_IRQ, []));
+                    this.contextSwitch();
                 }
                 this.resetCounter();
             }
@@ -97,6 +97,9 @@ var TSOS;
         };
         Scheduler.prototype.resetCounter = function () {
             this.counter = 0;
+        };
+        Scheduler.prototype.updateQuantum = function () {
+            this.quantum = _Quantum;
         };
         return Scheduler;
     }());
