@@ -491,6 +491,11 @@ var TSOS;
         };
         Shell.prototype.shellClearMemory = function (args) {
             _Memory.resetMemory();
+            for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
+                var pcb = _a[_i];
+                pcb.setState("Terminated");
+            }
+            _CPU.isExecuting = false;
         };
         Shell.prototype.shellQuantum = function (args) {
             if (args.length > 0) {

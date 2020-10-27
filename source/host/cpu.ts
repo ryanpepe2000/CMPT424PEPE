@@ -222,6 +222,10 @@ module TSOS {
         public static addWithCarry(params: string[]){
             let address = params[1] + params[0];
             address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
+            let sum = _CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address));
+            if (sum > 256 || sum < 2){
+                _KernelInterruptQueue.enqueue(new Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while adding two operands."]));
+            }
             _CPU.setAcc(_CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address)))
         }
 
@@ -258,9 +262,6 @@ module TSOS {
         public static compareXReg(params: string[]){
             let address = params[1] + params[0];
             address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
-
-            console.log("Trouble code -- reading bytes address: " + address + " as " + Utils.hexToDec(_MemoryAccessor.readByte(address)));
-
             Utils.hexToDec(_MemoryAccessor.readByte(address)) === _CPU.getXReg() ?
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         }
@@ -276,7 +277,9 @@ module TSOS {
             let address = params[1] + params[0];
             let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
             address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
-            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return; //ToDo: Update this case to a system call
+            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") {
+                _KernelInterruptQueue.enqueue(new Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while incrementing a value."]));
+            }
             _MemoryAccessor.writeByte(pos, Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1));
         }
 

@@ -28,6 +28,8 @@ const PRINT_PROCESS_IRQ: number = 4;
 
 const CONTEXT_SWITCH_IRQ: number = 5;
 
+const PROCESS_ERROR_IRQ: number = 6;
+
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 const MEMORY_BLOCKS: number = 3;
 

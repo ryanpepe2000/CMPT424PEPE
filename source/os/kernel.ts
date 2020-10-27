@@ -137,6 +137,9 @@ module TSOS {
                 case PRINT_PROCESS_IRQ:
                     this.krnPrintUserPrg(params);     // Kernel system call to print user program output
                     break;
+                case PROCESS_ERROR_IRQ:
+                    this.krnProcessError(params);     // Kernel system call to print user program output
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -185,6 +188,16 @@ module TSOS {
             _Console.putText(_OsShell.promptStr);
             _CPU.clearCPU();
         }
+
+        public krnProcessError(params: any[]) {
+            // Puts "Program completion message" and advances line with new prompt
+            _Scheduler.killProcess(_ProcessManager.getRunning());
+            _Console.advanceLine();
+            _Console.putText(params[0]);
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+        }
+
         //
         // OS Utility Routines
         //

@@ -204,6 +204,10 @@ var TSOS;
         Instruction.addWithCarry = function (params) {
             var address = params[1] + params[0];
             address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
+            var sum = _CPU.getAcc() + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address));
+            if (sum > 256 || sum < 2) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while adding two operands."]));
+            }
             _CPU.setAcc(_CPU.getAcc() + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
         };
         Instruction.loadXConstant = function (params) {
@@ -233,7 +237,6 @@ var TSOS;
         Instruction.compareXReg = function (params) {
             var address = params[1] + params[0];
             address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
-            console.log("Trouble code -- reading bytes address: " + address + " as " + TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)));
             TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) === _CPU.getXReg() ?
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         };
@@ -247,8 +250,9 @@ var TSOS;
             var address = params[1] + params[0];
             var pos = _MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment);
             address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
-            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF")
-                return; //ToDo: Update this case to a system call
+            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while incrementing a value."]));
+            }
             _MemoryAccessor.writeByte(pos, TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1));
         };
         Instruction.systemCall = function () {

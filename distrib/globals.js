@@ -20,6 +20,7 @@ var EXECUTE_PROCESS_IRQ = 2;
 var BREAK_PROCESS_IRQ = 3;
 var PRINT_PROCESS_IRQ = 4;
 var CONTEXT_SWITCH_IRQ = 5;
+var PROCESS_ERROR_IRQ = 6;
 var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 var MEMORY_BLOCKS = 3;
 //

@@ -578,6 +578,10 @@ module TSOS {
 
         public shellClearMemory(args: string[]) {
             _Memory.resetMemory();
+            for (let pcb of _ProcessManager.getProcessList()){
+                pcb.setState("Terminated");
+            }
+            _CPU.isExecuting = false;
         }
 
         public shellQuantum(args: string[]) {

@@ -24,16 +24,11 @@ module TSOS {
         }
 
         public killProcess(pcb: ProcessControlBlock){
-            // Enqueue/Dequeue processes until the requested process has been removed
-            let startingPID = _ProcessManager.getRunning().pid;
-            let nextPID = -1;
-            while (startingPID != nextPID){
-                let nextPCB = this.contextSwitch();
-                if (nextPCB.pid == pcb.pid){
-                    nextPCB.setState("Terminated")
-                } else {
-                    nextPID = nextPCB.pid;
-                }
+            _ProcessManager.getRunning().setState("Terminated");
+            if (_ProcessManager.getReadyQueue().getSize() >= 1){
+                this.contextSwitch();
+            } else {
+                _CPU.isExecuting = false;
             }
         }
 
