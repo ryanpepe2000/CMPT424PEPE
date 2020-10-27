@@ -1,0 +1,73 @@
+/* --------
+   Utils.ts
+
+   Utility functions.
+   -------- */
+var TSOS;
+(function (TSOS) {
+    var Utils = /** @class */ (function () {
+        function Utils() {
+        }
+        Utils.trim = function (str) {
+            // Use a regular expression to remove leading and trailing spaces.
+            return str.replace(/^\s+ | \s+$/g, "");
+            /*
+            Huh? WTF? Okay... take a breath. Here we go:
+            - The "|" separates this into two expressions, as in A or B.
+            - "^\s+" matches a sequence of one or more whitespace characters at the beginning of a string.
+            - "\s+$" is the same thing, but at the end of the string.
+            - "g" makes is global, so we get all the whitespace.
+            - "" is nothing, which is what we replace the whitespace with.
+            */
+        };
+        Utils.rot13 = function (str) {
+            /*
+               This is an easy-to understand implementation of the famous and common Rot13 obfuscator.
+               You can do this in three lines with a complex regular expression, but I'd have
+               trouble explaining it in the future.  There's a lot to be said for obvious code.
+            */
+            var retVal = "";
+            for (var i in str) { // We need to cast the string to any for use in the for...in construct.
+                var ch = str[i];
+                var code = 0;
+                if ("abcedfghijklmABCDEFGHIJKLM".indexOf(ch) >= 0) {
+                    code = str.charCodeAt(Number(i)) + 13; // It's okay to use 13.  It's not a magic number, it's called rot13.
+                    retVal = retVal + String.fromCharCode(code);
+                }
+                else if ("nopqrstuvwxyzNOPQRSTUVWXYZ".indexOf(ch) >= 0) {
+                    code = str.charCodeAt(Number(i)) - 13; // It's okay to use 13.  See above.
+                    retVal = retVal + String.fromCharCode(code);
+                }
+                else {
+                    retVal = retVal + ch;
+                }
+            }
+            return retVal;
+        };
+        Utils.hexToDec = function (hexVal) {
+            return parseInt("0x" + hexVal);
+        };
+        Utils.decToHex = function (decVal) {
+            return decVal.toString(16);
+        };
+        Utils.padHex = function (hexString, padAmt) {
+            if (hexString == null)
+                return null;
+            var retVal = hexString;
+            while (retVal.length < padAmt) {
+                retVal = "0" + retVal;
+            }
+            return "0x" + retVal.toUpperCase();
+        };
+        Utils.removePad = function (hexString) {
+            var retval = hexString.replace(/^0+/g, "");
+            if (retval === "") {
+                return 0;
+            }
+            else
+                return this.hexToDec(retval);
+        };
+        return Utils;
+    }());
+    TSOS.Utils = Utils;
+})(TSOS || (TSOS = {}));
