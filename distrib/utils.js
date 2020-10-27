@@ -60,12 +60,12 @@ var TSOS;
             return "0x" + retVal.toUpperCase();
         };
         Utils.removePad = function (hexString) {
-            for (var i = 0; i < hexString.length; i++) {
-                if (hexString.charAt(i) !== '0') {
-                    return hexString.substr(i).toLowerCase();
-                }
+            var retval = hexString.replace(/^0+/g, "");
+            if (retval === "") {
+                return 0;
             }
-            return "0";
+            else
+                return this.hexToDec(retval);
         };
         return Utils;
     }());

@@ -61,13 +61,11 @@ module TSOS {
             return "0x" + retVal.toUpperCase();
         }
 
-        public static removePad(hexString: string): string {
-            for (let i = 0; i < hexString.length; i++){
-                if (hexString.charAt(i) !== '0'){
-                    return hexString.substr(i).toLowerCase();
-                }
-            }
-            return "0";
+        public static removePad(hexString: string): number {
+            let retval = hexString.replace(/^0+/g, "");
+            if (retval === ""){
+                return 0;
+            } else return this.hexToDec(retval);
         }
     }
 }

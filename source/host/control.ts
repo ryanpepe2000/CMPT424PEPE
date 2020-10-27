@@ -105,10 +105,14 @@ module TSOS {
             _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
 
+            // Create CPU Scheduler
+            _Scheduler = new Scheduler();
+
             // Create and initialize the memory and accessor (also parts of hardware)
             _Memory = new Memory();
             _Memory.init();
             _MemoryAccessor = new MemoryAccessor();
+            _MMU = new MemoryManager();
 
             // Create and initialize the process manager
             _ProcessManager = new ProcessManager();
@@ -142,7 +146,7 @@ module TSOS {
             document.getElementById("single_step").innerHTML = "Single Step: " +
                 (_SingleStep ? "On" : "Off");
             for (let i = 0; i < _ProcessManager.getProcessList().length; i++){
-                if (_ProcessManager.getPCB(i).getState() === "Executing"){
+                if (_ProcessManager.getPCB(i).getState() === "Running"){
                     _CPU.isExecuting = true;
                 }
             }
@@ -150,7 +154,7 @@ module TSOS {
 
         public static hostBtnStep_click(btn): void {
             for (let i = 0; i < _ProcessManager.getProcessList().length; i++){
-                if (_ProcessManager.getPCB(i).getState() === "Executing"){
+                if (_ProcessManager.getPCB(i).getState() === "Running"){
                     _CPU.isExecuting = true;
                 }
             }
@@ -188,7 +192,7 @@ module TSOS {
             let tableContent =
                 "<tbody>" +
                     "<tr>" +
-                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th>" +
+                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th><th>Segment</th>" +
                     "</tr>";
             if (_ProcessManager.getProcessList().length > 0){
                 for (let pid = 0; pid < _ProcessManager.getProcessList().length; pid++){
@@ -202,6 +206,7 @@ module TSOS {
                             `<td>${process.getYReg()}</td>` +
                             `<td>${process.getZFlag()}</td>` +
                             `<td>${process.getState()}</td>` +
+                            `<td>${process.getSegment()}</td>` +
                         `</tr>`
                     );
                 }
@@ -225,7 +230,7 @@ module TSOS {
                 // Need to keep track of current search index and append 8 cells with proper id
                 // to the table
                 for (let j = i; j < i + 8; j+=0x1){
-                    let cell = _Memory.getMemory(j.toString()).toUpperCase();
+                    let cell = _Memory.getMemory(j.toString());
                     tableContent+=`<td id="mem-cell-${j}">${cell}</td>`;
                 }
                 tableContent += "</tr>";
@@ -238,18 +243,18 @@ module TSOS {
         static updateMemoryDisplay() {
             for (let i = 0; i < _Memory.memory.length; i++) {
                 let element = $(`#mem-cell-${i}`);
-                element.html(_MemoryAccessor.readByte(Utils.decToHex(i)));
+                element.html(_Memory.getMemory(Utils.decToHex(i)));
             }
         }
 
         // Applies color the current IR and its parameters
         static highlightMemoryDisplay() {
-            let instr = _CPU.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_CPU.getPC())));
+            let instr = _CPU.getInstruction(_Memory.getMemory(Utils.decToHex(_MMU.translateAddress(_CPU.getPC(), _CPU.segment))));
             let tableElements = $("#memory tbody *");
             tableElements.removeAttr('style');
             if (instr !== undefined) { // Ensures that the instruction is valid in case of invalid user input (prevents crash)
                 for (let offset = 0; offset < instr.getPCInc(); offset++){
-                    let cell = $(`#mem-cell-${_CPU.getPC()+ offset}`);
+                    let cell = $(`#mem-cell-${_MMU.translateAddress(_CPU.getPC() + offset, _CPU.segment)}`);
                     if (offset === 0){
                         cell.css("color", "green");
                     } else {

@@ -20,6 +20,7 @@ module TSOS {
                     public Xreg: number = 0,
                     public Yreg: number = 0,
                     public Zflag: number = 0,
+                    public segment: number = 0,
                     public isExecuting: boolean = false,
                     public instructionList: Array<Instruction> = new Array<Instruction>(11)) {
 
@@ -31,6 +32,7 @@ module TSOS {
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.segment = 0;
             this.isExecuting = false;
             // Populate Instruction Array with IR, mneumontic, pcincrements, and the static Instruction function
             this.instructionList[0] =  (new Instruction("A9", "LDA", 2, Instruction.loadAccConstant));
@@ -49,12 +51,21 @@ module TSOS {
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         }
 
+        public clearCPU(){
+            this.PC = 0;
+            this.Acc = 0;
+            this.Xreg = 0;
+            this.Yreg = 0;
+            this.Zflag = 0;
+            this.segment = 0;
+        }
+
         // Executes once per cpu clock pulse if there are user processes in execution
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
-            this.execute();
+            _Scheduler.executeRoundRobin();
              // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
@@ -64,15 +75,16 @@ module TSOS {
 
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
-                if (pcb.state === "Executing") {
-                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(this.PC)));
+                if (pcb.state === "Running") {
+                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
                     let pcInc = instruction.getPCInc();
+                    // Need to pass proper physical addresses using logical address and segments
                     instruction.getCallback()([
-                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 1)),  // Next item in memory
-                        _MemoryAccessor.readByte(Utils.decToHex(this.PC + 2))   // The following item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 1, _CPU.segment))),  // Next item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment)))   // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
-                        pcb.setState("Finished")
+                        pcb.setState("Terminated")
                     }
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
@@ -91,15 +103,18 @@ module TSOS {
 
         // Begins execution of a process. To be called by shellRun
         public startProcess(pcb: ProcessControlBlock) {
-            pcb.setState("Executing");
-            this.PC = pcb.pc;
-            this.Acc = pcb.acc;
-            this.Xreg = pcb.xReg;
-            this.Yreg = pcb.yReg;
-            this.Zflag = pcb.zFlag;
+            _Scheduler.runProcess(pcb);
             if (!_SingleStep){
                 this.isExecuting = true;
             }
+        }
+
+        public endProcess(pcb: ProcessControlBlock) {
+            _Scheduler.killProcess(pcb);
+        }
+
+        public endAllProcesses(){
+            _Scheduler.killAll();
         }
 
         // Updates the PCB to match the current CPU's status
@@ -119,7 +134,7 @@ module TSOS {
         public addPc(amount: number){
             this.PC += amount;
             if (this.PC > MEMORY_LENGTH){    // If the PC overflows, it should become remainder
-                this.PC = (this.PC % MEMORY_LENGTH);
+                this.PC = this.PC % MEMORY_LENGTH;
             }
         }
 
@@ -192,18 +207,25 @@ module TSOS {
 
         public static loadAccMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setAcc(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
         public static storeAcc(params: string[]){
             let address = params[1] + params[0];
+            let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
             let val = Utils.decToHex(_CPU.getAcc());
             if (val === "0") val = "00"; // Ensures the value being stored is in proper format
-            _MemoryAccessor.writeByte(Utils.hexToDec(address), val);
+            _MemoryAccessor.writeByte(pos, val);
         }
 
         public static addWithCarry(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
+            let sum = _CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address));
+            if (sum > 256 || sum < 2){
+                _KernelInterruptQueue.enqueue(new Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while adding two operands."]));
+            }
             _CPU.setAcc(_CPU.getAcc() + Utils.hexToDec(_MemoryAccessor.readByte(address)))
         }
 
@@ -213,6 +235,7 @@ module TSOS {
 
         public static loadXMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setXReg(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
@@ -222,6 +245,7 @@ module TSOS {
 
         public static loadYMemory(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             _CPU.setYReg(Utils.hexToDec(_MemoryAccessor.readByte(address)));
         }
 
@@ -237,6 +261,7 @@ module TSOS {
 
         public static compareXReg(params: string[]){
             let address = params[1] + params[0];
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             Utils.hexToDec(_MemoryAccessor.readByte(address)) === _CPU.getXReg() ?
                 _CPU.enableZFlag() : _CPU.disableZFlag();
         }
@@ -250,9 +275,12 @@ module TSOS {
 
         public static incrementValue(params: string[]) {
             let address = params[1] + params[0];
-            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return; //ToDo: Update this case to a system call
-            _MemoryAccessor.writeByte(Utils.hexToDec(address),
-                Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
+            let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
+            if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") {
+                _KernelInterruptQueue.enqueue(new Interrupt(PROCESS_ERROR_IRQ, ["An error has occurred while incrementing a value."]));
+            }
+            _MemoryAccessor.writeByte(pos, Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1));
         }
 
         public static systemCall() {
@@ -261,10 +289,10 @@ module TSOS {
                 retVal += _CPU.getYReg();
             } else if (_CPU.getXReg() === 2) {
                 let index = _CPU.getYReg();
-                let val = _MemoryAccessor.readByte(Utils.decToHex(index));
+                let val = _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(index, _CPU.segment)));
                 while(val !== "0" && val !== "00"){ // Format checks
                     retVal += String.fromCharCode(Utils.hexToDec(val));
-                    val = _MemoryAccessor.readByte(Utils.decToHex(++index));
+                    val = _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(++index, _CPU.segment)));
                 }
             } else {   // Only sends a system call if absolutely necessary
                 return;

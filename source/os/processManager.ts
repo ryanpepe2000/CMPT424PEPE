@@ -12,17 +12,31 @@
 module TSOS {
     export class ProcessManager {
 
-        constructor(private processes: Array<ProcessControlBlock> = new Array<ProcessControlBlock>()) {
+        constructor(private processes: Array<ProcessControlBlock> = new Array<ProcessControlBlock>(),
+                    private readyQueue: Queue = new Queue(),
+                    private terminatedList: Array<ProcessControlBlock> = new Array<ProcessControlBlock>()) {
         }
 
         public getProcessList(): Array<ProcessControlBlock> {
             return this.processes;
         }
 
-        public createProcess(): ProcessControlBlock {
-            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID());
+        public getReadyQueue(){
+            return this.readyQueue;
+        }
+
+        public createProcess(segment: number): ProcessControlBlock {
+            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID(), segment);
             this.processes[this.processes.length] = pcb;
             return pcb;
+        }
+
+        public getRunning(): ProcessControlBlock{
+            for (let pcb of this.getProcessList()){
+                if (pcb.getState() === "Running"){
+                    return pcb;
+                }
+            }
         }
 
         public getPCB(pid: number): ProcessControlBlock {
@@ -42,12 +56,17 @@ module TSOS {
 
     export class ProcessControlBlock {
         constructor(public pid: number,
+                    public segment: number,
                     public pc: number = 0,
                     public acc: number = 0,
                     public xReg: number = 0,
                     public yReg: number = 0,
                     public zFlag: number = 0,
-                    public state: string = "Waiting"){
+                    public state: string = "New"){
+        }
+
+        public getPID(): number {
+            return this.pid;
         }
 
         public getPC(): number {
@@ -109,8 +128,13 @@ module TSOS {
             return this.state;
         }
 
-        public setState(state: string) {
+        public setState(state: string): ProcessControlBlock {
             this.state = state;
+            return this;
+        }
+
+        public getSegment(): number{
+            return this.segment;
         }
     }
 }

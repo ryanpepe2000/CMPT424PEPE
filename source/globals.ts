@@ -26,7 +26,12 @@ const BREAK_PROCESS_IRQ: number = 3;
 
 const PRINT_PROCESS_IRQ: number = 4;
 
+const CONTEXT_SWITCH_IRQ: number = 5;
+
+const PROCESS_ERROR_IRQ: number = 6;
+
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
+const MEMORY_BLOCKS: number = 3;
 
 //
 // Global Variables
@@ -35,11 +40,13 @@ const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 2
 
 // Hardware (host)
 let _CPU: TSOS.Cpu;  // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
+let _Quantum = 3;
 let _Memory: TSOS.Memory;
 let _MemoryAccessor: TSOS.MemoryAccessor;
+let _Scheduler: TSOS.Scheduler;
 
 // Software (OS)
-let _MemoryManager: TSOS.MemoryManager = null;
+let _MMU: TSOS.MemoryManager;
 
 // Process Implementations
 let _ProcessManager: TSOS.ProcessManager = null;

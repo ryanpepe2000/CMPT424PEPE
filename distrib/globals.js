@@ -19,17 +19,22 @@ var KEYBOARD_IRQ = 1;
 var EXECUTE_PROCESS_IRQ = 2;
 var BREAK_PROCESS_IRQ = 3;
 var PRINT_PROCESS_IRQ = 4;
+var CONTEXT_SWITCH_IRQ = 5;
+var PROCESS_ERROR_IRQ = 6;
 var MEMORY_LENGTH = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
+var MEMORY_BLOCKS = 3;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
 // Hardware (host)
 var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
+var _Quantum = 3;
 var _Memory;
 var _MemoryAccessor;
+var _Scheduler;
 // Software (OS)
-var _MemoryManager = null;
+var _MMU;
 // Process Implementations
 var _ProcessManager = null;
 var _OSclock = 0; // Page 23.
