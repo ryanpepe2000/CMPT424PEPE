@@ -55,12 +55,20 @@ var TSOS;
             this.instructionList[12] = (new Instruction("EE", "INC", 3, Instruction.incrementValue));
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         };
+        Cpu.prototype.clearCPU = function () {
+            this.PC = 0;
+            this.Acc = 0;
+            this.Xreg = 0;
+            this.Yreg = 0;
+            this.Zflag = 0;
+            this.segment = 0;
+        };
         // Executes once per cpu clock pulse if there are user processes in execution
         Cpu.prototype.cycle = function () {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
-            this.execute();
+            _Scheduler.executeRoundRobin();
             // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
@@ -70,7 +78,7 @@ var TSOS;
         Cpu.prototype.execute = function () {
             for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
                 var pcb = _a[_i];
-                if (pcb.state === "Executing") {
+                if (pcb.state === "Running") {
                     var instruction = this.getInstruction(_MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
                     var pcInc = instruction.getPCInc();
                     // Need to pass proper physical addresses using logical address and segments
@@ -79,7 +87,7 @@ var TSOS;
                         _MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment))) // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
-                        pcb.setState("Finished");
+                        pcb.setState("Terminated");
                     }
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
@@ -96,16 +104,16 @@ var TSOS;
         };
         // Begins execution of a process. To be called by shellRun
         Cpu.prototype.startProcess = function (pcb) {
-            pcb.setState("Executing");
-            this.PC = pcb.pc;
-            this.Acc = pcb.acc;
-            this.Xreg = pcb.xReg;
-            this.Yreg = pcb.yReg;
-            this.Zflag = pcb.zFlag;
-            this.segment = pcb.segment;
+            _Scheduler.runProcess(pcb);
             if (!_SingleStep) {
                 this.isExecuting = true;
             }
+        };
+        Cpu.prototype.endProcess = function (pcb) {
+            _Scheduler.killProcess(pcb);
+        };
+        Cpu.prototype.endAllProcesses = function () {
+            _Scheduler.killAll();
         };
         // Updates the PCB to match the current CPU's status
         Cpu.prototype.updatePCB = function (pcb) {
@@ -238,9 +246,10 @@ var TSOS;
         Instruction.incrementValue = function (params) {
             var address = params[1] + params[0];
             var pos = _MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment);
+            address = TSOS.Utils.decToHex(_MMU.translateAddress(TSOS.Utils.hexToDec(address), _CPU.segment));
             if (_MemoryAccessor.readByte(address).toUpperCase() === "FF")
                 return; //ToDo: Update this case to a system call
-            _MemoryAccessor.writeByte(pos, TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
+            _MemoryAccessor.writeByte(pos, TSOS.Utils.decToHex(TSOS.Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1));
         };
         Instruction.systemCall = function () {
             var retVal = "";
@@ -249,10 +258,10 @@ var TSOS;
             }
             else if (_CPU.getXReg() === 2) {
                 var index = _CPU.getYReg();
-                var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(index));
+                var val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(index, _CPU.segment)));
                 while (val !== "0" && val !== "00") { // Format checks
                     retVal += String.fromCharCode(TSOS.Utils.hexToDec(val));
-                    val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(++index));
+                    val = _MemoryAccessor.readByte(TSOS.Utils.decToHex(_MMU.translateAddress(++index, _CPU.segment)));
                 }
             }
             else { // Only sends a system call if absolutely necessary

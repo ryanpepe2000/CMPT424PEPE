@@ -111,6 +111,9 @@ var TSOS;
                     _krnKeyboardDriver.isr(params); // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
+                case CONTEXT_SWITCH_IRQ:
+                    this.krnContextSwitch(params); // Kernel system call to print user program output
+                    break;
                 case EXECUTE_PROCESS_IRQ:
                     this.krnExecuteProcess(); // Kernel system call to execute a process
                     break;
@@ -149,14 +152,18 @@ var TSOS;
         Kernel.prototype.krnPrintUserPrg = function (params) {
             _Console.putText(params[0]);
         };
+        Kernel.prototype.krnContextSwitch = function (params) {
+            // Temporarily commenting until krn error is resolved
+            //_Scheduler.contextSwitch();
+        };
         Kernel.prototype.krnBreakProcess = function (params) {
             // Puts "Program completion message" and advances line with new prompt
-            _CPU.isExecuting = false;
+            _CPU.isExecuting = _ProcessManager.getReadyQueue().getSize() >= 1;
             _Console.advanceLine();
             _Console.putText(params[0]);
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
-            _CPU.init();
+            _CPU.clearCPU();
         };
         //
         // OS Utility Routines

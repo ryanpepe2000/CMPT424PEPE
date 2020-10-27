@@ -11,17 +11,32 @@
 var TSOS;
 (function (TSOS) {
     var ProcessManager = /** @class */ (function () {
-        function ProcessManager(processes) {
+        function ProcessManager(processes, readyQueue, terminatedList) {
             if (processes === void 0) { processes = new Array(); }
+            if (readyQueue === void 0) { readyQueue = new TSOS.Queue(); }
+            if (terminatedList === void 0) { terminatedList = new Array(); }
             this.processes = processes;
+            this.readyQueue = readyQueue;
+            this.terminatedList = terminatedList;
         }
         ProcessManager.prototype.getProcessList = function () {
             return this.processes;
+        };
+        ProcessManager.prototype.getReadyQueue = function () {
+            return this.readyQueue;
         };
         ProcessManager.prototype.createProcess = function (segment) {
             var pcb = new ProcessControlBlock(this.getNextPID(), segment);
             this.processes[this.processes.length] = pcb;
             return pcb;
+        };
+        ProcessManager.prototype.getRunning = function () {
+            for (var _i = 0, _a = this.getProcessList(); _i < _a.length; _i++) {
+                var pcb = _a[_i];
+                if (pcb.getState() === "Running") {
+                    return pcb;
+                }
+            }
         };
         ProcessManager.prototype.getPCB = function (pid) {
             return this.processes[pid];
@@ -45,7 +60,7 @@ var TSOS;
             if (xReg === void 0) { xReg = 0; }
             if (yReg === void 0) { yReg = 0; }
             if (zFlag === void 0) { zFlag = 0; }
-            if (state === void 0) { state = "Waiting"; }
+            if (state === void 0) { state = "New"; }
             this.pid = pid;
             this.segment = segment;
             this.pc = pc;
@@ -55,6 +70,9 @@ var TSOS;
             this.zFlag = zFlag;
             this.state = state;
         }
+        ProcessControlBlock.prototype.getPID = function () {
+            return this.pid;
+        };
         ProcessControlBlock.prototype.getPC = function () {
             return this.pc;
         };
@@ -102,6 +120,7 @@ var TSOS;
         };
         ProcessControlBlock.prototype.setState = function (state) {
             this.state = state;
+            return this;
         };
         ProcessControlBlock.prototype.getSegment = function () {
             return this.segment;

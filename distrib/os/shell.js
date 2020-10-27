@@ -66,8 +66,20 @@ var TSOS;
             // run
             sc = new TSOS.ShellCommand(this.shellRun, "run", "- Executes a user program.");
             this.commandList[this.commandList.length] = sc;
+            // runall
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "- Adds all loaded programs to the ready queue");
+            this.commandList[this.commandList.length] = sc;
+            // kill
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "- Terminates a user program");
+            this.commandList[this.commandList.length] = sc;
+            // killall
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- Terminated all user programs on the ready queue");
+            this.commandList[this.commandList.length] = sc;
             // clear memory
-            sc = new TSOS.ShellCommand(this.shellClearMemory, "clm", "- Clears the system memory.");
+            sc = new TSOS.ShellCommand(this.shellClearMemory, "clearmem", "- Clears the system memory.");
+            this.commandList[this.commandList.length] = sc;
+            // quantum
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "- Updates the system quantum.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -282,10 +294,22 @@ var TSOS;
                         _StdOut.putText("Updates the status message");
                         break;
                     case "run":
-                        _StdOut.putText("Begins execution of a user program");
+                        _StdOut.putText("Adds user program to the ready queue");
                         break;
-                    case "clm":
+                    case "runall":
+                        _StdOut.putText("Adds all user programs to the ready queue");
+                        break;
+                    case "kill":
+                        _StdOut.putText("Removes a program from the ready queue");
+                        break;
+                    case "killall":
+                        _StdOut.putText("Removes all programs from the ready queue");
+                        break;
+                    case "clearmem":
                         _StdOut.putText("Clears the entire system memory");
+                        break;
+                    case "quantum":
+                        _StdOut.putText("Changes the number of cycles for CPU scheduling");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -368,6 +392,7 @@ var TSOS;
                         return;
                     }
                     else {
+                        // Create PCB and add it to the Resident List
                         var pcb = _ProcessManager.createProcess(segment);
                         _MMU.fillSegment(segment, userCode);
                         _StdOut.putText("Process Loaded. PID: " + pcb.pid);
@@ -431,13 +456,47 @@ var TSOS;
             if (args.length > 0) {
                 var pcb = _ProcessManager.getPCB(parseInt(args[0]));
                 if (pcb !== null) {
+                    // ToDo: Implement this part into scheduler logic
                     _CPU.startProcess(pcb);
                 }
                 TSOS.Control.highlightMemoryDisplay();
             }
         };
+        Shell.prototype.shellRunAll = function (args) {
+            for (var _i = 0, _a = _ProcessManager.getProcessList(); _i < _a.length; _i++) {
+                var process = _a[_i];
+                if (process.getState() == "New") {
+                    _CPU.startProcess(process);
+                }
+            }
+            TSOS.Control.highlightMemoryDisplay();
+        };
+        Shell.prototype.shellKill = function (args) {
+            if (args.length > 0) {
+                var pcb = _ProcessManager.getPCB(parseInt(args[0]));
+                if (pcb !== null) {
+                    _CPU.endProcess(pcb);
+                }
+                TSOS.Control.highlightMemoryDisplay();
+            }
+        };
+        Shell.prototype.shellKillAll = function (args) {
+            _CPU.endAllProcesses();
+            TSOS.Control.highlightMemoryDisplay();
+        };
         Shell.prototype.shellClearMemory = function (args) {
             _Memory.resetMemory();
+        };
+        Shell.prototype.shellQuantum = function (args) {
+            if (args.length > 0) {
+                var newQuantum = parseInt(args[0]);
+                if (newQuantum !== undefined && newQuantum > 0) {
+                    _Quantum = newQuantum;
+                }
+                else {
+                    _StdOut.putText("Invalid quantum value.");
+                }
+            }
         };
         return Shell;
     }());

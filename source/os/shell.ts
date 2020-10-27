@@ -117,11 +117,36 @@ module TSOS {
                 "- Executes a user program.");
             this.commandList[this.commandList.length] = sc;
 
+            // runall
+            sc = new ShellCommand(this.shellRunAll,
+                "runall",
+                "- Adds all loaded programs to the ready queue");
+            this.commandList[this.commandList.length] = sc;
+
+            // kill
+            sc = new ShellCommand(this.shellKill,
+                "kill",
+                "- Terminates a user program");
+            this.commandList[this.commandList.length] = sc;
+
+            // killall
+            sc = new ShellCommand(this.shellKillAll,
+                "killall",
+                "- Terminated all user programs on the ready queue");
+            this.commandList[this.commandList.length] = sc;
+
             // clear memory
             sc = new ShellCommand(this.shellClearMemory,
-                "clm",
+                "clearmem",
                 "- Clears the system memory.");
             this.commandList[this.commandList.length] = sc;
+
+            // quantum
+            sc = new ShellCommand(this.shellQuantum,
+                "quantum",
+                "- Updates the system quantum.");
+            this.commandList[this.commandList.length] = sc;
+
 
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -350,10 +375,22 @@ module TSOS {
                         _StdOut.putText("Updates the status message");
                         break;
                     case "run":
-                        _StdOut.putText("Begins execution of a user program");
+                        _StdOut.putText("Adds user program to the ready queue");
                         break;
-                    case "clm":
+                    case "runall":
+                        _StdOut.putText("Adds all user programs to the ready queue");
+                        break;
+                    case "kill":
+                        _StdOut.putText("Removes a program from the ready queue");
+                        break;
+                    case "killall":
+                        _StdOut.putText("Removes all programs from the ready queue");
+                        break;
+                    case "clearmem":
                         _StdOut.putText("Clears the entire system memory");
+                        break;
+                    case "quantum":
+                        _StdOut.putText("Changes the number of cycles for CPU scheduling");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -438,6 +475,7 @@ module TSOS {
                         _StdOut.putText("Valid Code. Program is too long.");
                         return;
                     } else {
+                        // Create PCB and add it to the Resident List
                         let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
                         _MMU.fillSegment(segment, userCode);
                         _StdOut.putText("Process Loaded. PID: " + pcb.pid);
@@ -498,14 +536,51 @@ module TSOS {
             if (args.length > 0) {
                 let pcb = _ProcessManager.getPCB(parseInt(args[0]));
                 if (pcb !== null) {
+                    // ToDo: Implement this part into scheduler logic
                     _CPU.startProcess(pcb);
                 }
                 Control.highlightMemoryDisplay();
             }
         }
 
+
+        public shellRunAll(args: string[]) {
+            for (let process of _ProcessManager.getProcessList()){
+                if (process.getState() == "New"){
+                    _CPU.startProcess(process);
+                }
+            }
+            Control.highlightMemoryDisplay();
+        }
+
+        public shellKill(args: string[]) {
+            if (args.length > 0) {
+                let pcb = _ProcessManager.getPCB(parseInt(args[0]));
+                if (pcb !== null) {
+                    _CPU.endProcess(pcb);
+                }
+                Control.highlightMemoryDisplay();
+            }
+        }
+
+        public shellKillAll(args: string[]) {
+            _CPU.endAllProcesses();
+            Control.highlightMemoryDisplay();
+        }
+
         public shellClearMemory(args: string[]) {
             _Memory.resetMemory();
+        }
+
+        public shellQuantum(args: string[]) {
+            if (args.length > 0) {
+                let newQuantum = parseInt(args[0]);
+                if (newQuantum !== undefined && newQuantum > 0){
+                    _Quantum = newQuantum;
+                } else {
+                    _StdOut.putText("Invalid quantum value.")
+                }
+            }
         }
     }
 

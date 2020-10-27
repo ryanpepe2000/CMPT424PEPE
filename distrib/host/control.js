@@ -86,6 +86,8 @@ var TSOS;
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            // Create CPU Scheduler
+            _Scheduler = new TSOS.Scheduler();
             // Create and initialize the memory and accessor (also parts of hardware)
             _Memory = new TSOS.Memory();
             _Memory.init();
@@ -120,14 +122,14 @@ var TSOS;
             document.getElementById("single_step").innerHTML = "Single Step: " +
                 (_SingleStep ? "On" : "Off");
             for (var i = 0; i < _ProcessManager.getProcessList().length; i++) {
-                if (_ProcessManager.getPCB(i).getState() === "Executing") {
+                if (_ProcessManager.getPCB(i).getState() === "Running") {
                     _CPU.isExecuting = true;
                 }
             }
         };
         Control.hostBtnStep_click = function (btn) {
             for (var i = 0; i < _ProcessManager.getProcessList().length; i++) {
-                if (_ProcessManager.getPCB(i).getState() === "Executing") {
+                if (_ProcessManager.getPCB(i).getState() === "Running") {
                     _CPU.isExecuting = true;
                 }
             }

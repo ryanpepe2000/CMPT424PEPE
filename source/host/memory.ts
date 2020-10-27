@@ -30,6 +30,9 @@ module TSOS {
             for (let i = 0; i < this.memory.length; i++){
                 this.setMemory(i, "00");
             }
+            for (let i = 0; i < _MMU.availableSegments.length; i++){
+                _MMU.emptySegment(i);
+            }
         }
 
         // Methods to be used by memory accessor

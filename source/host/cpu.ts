@@ -51,12 +51,21 @@ module TSOS {
             this.instructionList[13] = (new Instruction("FF", "SYS", 1, Instruction.systemCall));
         }
 
+        public clearCPU(){
+            this.PC = 0;
+            this.Acc = 0;
+            this.Xreg = 0;
+            this.Yreg = 0;
+            this.Zflag = 0;
+            this.segment = 0;
+        }
+
         // Executes once per cpu clock pulse if there are user processes in execution
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
-            this.execute();
+            _Scheduler.executeRoundRobin();
              // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
@@ -66,7 +75,7 @@ module TSOS {
 
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
-                if (pcb.state === "Executing") {
+                if (pcb.state === "Running") {
                     let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
                     let pcInc = instruction.getPCInc();
                     // Need to pass proper physical addresses using logical address and segments
@@ -75,7 +84,7 @@ module TSOS {
                         _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment)))   // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
-                        pcb.setState("Finished")
+                        pcb.setState("Terminated")
                     }
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
@@ -94,16 +103,18 @@ module TSOS {
 
         // Begins execution of a process. To be called by shellRun
         public startProcess(pcb: ProcessControlBlock) {
-            pcb.setState("Executing");
-            this.PC = pcb.pc;
-            this.Acc = pcb.acc;
-            this.Xreg = pcb.xReg;
-            this.Yreg = pcb.yReg;
-            this.Zflag = pcb.zFlag;
-            this.segment = pcb.segment;
+            _Scheduler.runProcess(pcb);
             if (!_SingleStep){
                 this.isExecuting = true;
             }
+        }
+
+        public endProcess(pcb: ProcessControlBlock) {
+            _Scheduler.killProcess(pcb);
+        }
+
+        public endAllProcesses(){
+            _Scheduler.killAll();
         }
 
         // Updates the PCB to match the current CPU's status
@@ -264,8 +275,9 @@ module TSOS {
         public static incrementValue(params: string[]) {
             let address = params[1] + params[0];
             let pos = _MMU.translateAddress(Utils.hexToDec(address), _CPU.segment);
+            address = Utils.decToHex(_MMU.translateAddress(Utils.hexToDec(address), _CPU.segment));
             if (_MemoryAccessor.readByte(address).toUpperCase() === "FF") return; //ToDo: Update this case to a system call
-            _MemoryAccessor.writeByte(pos, Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1).toUpperCase());
+            _MemoryAccessor.writeByte(pos, Utils.decToHex(Utils.hexToDec(_MemoryAccessor.readByte(address)) + 0x1));
         }
 
         public static systemCall() {
@@ -274,10 +286,10 @@ module TSOS {
                 retVal += _CPU.getYReg();
             } else if (_CPU.getXReg() === 2) {
                 let index = _CPU.getYReg();
-                let val = _MemoryAccessor.readByte(Utils.decToHex(index));
+                let val = _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(index, _CPU.segment)));
                 while(val !== "0" && val !== "00"){ // Format checks
                     retVal += String.fromCharCode(Utils.hexToDec(val));
-                    val = _MemoryAccessor.readByte(Utils.decToHex(++index));
+                    val = _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(++index, _CPU.segment)));
                 }
             } else {   // Only sends a system call if absolutely necessary
                 return;

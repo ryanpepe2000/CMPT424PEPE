@@ -105,6 +105,9 @@ module TSOS {
             _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
 
+            // Create CPU Scheduler
+            _Scheduler = new Scheduler();
+
             // Create and initialize the memory and accessor (also parts of hardware)
             _Memory = new Memory();
             _Memory.init();
@@ -143,7 +146,7 @@ module TSOS {
             document.getElementById("single_step").innerHTML = "Single Step: " +
                 (_SingleStep ? "On" : "Off");
             for (let i = 0; i < _ProcessManager.getProcessList().length; i++){
-                if (_ProcessManager.getPCB(i).getState() === "Executing"){
+                if (_ProcessManager.getPCB(i).getState() === "Running"){
                     _CPU.isExecuting = true;
                 }
             }
@@ -151,7 +154,7 @@ module TSOS {
 
         public static hostBtnStep_click(btn): void {
             for (let i = 0; i < _ProcessManager.getProcessList().length; i++){
-                if (_ProcessManager.getPCB(i).getState() === "Executing"){
+                if (_ProcessManager.getPCB(i).getState() === "Running"){
                     _CPU.isExecuting = true;
                 }
             }

@@ -7,7 +7,7 @@
 
 module TSOS {
     export class MemoryManager {
-        private availableSegments: Array<boolean>;
+        public availableSegments: Array<boolean>;
         constructor() {
             this.availableSegments = new Array<boolean>(MEMORY_BLOCKS);
             for (let i = 0; i < MEMORY_BLOCKS; i++){
