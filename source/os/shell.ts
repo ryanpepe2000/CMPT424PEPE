@@ -543,9 +543,16 @@ module TSOS {
 
         public shellRun(args: string[]) {
             if (args.length > 0) {
-                let pcb = _ProcessManager.getPCB(parseInt(args[0]));
-                if (pcb !== null && pcb.state !== "Terminated") {
+                let pid = parseInt(args[0]);
+                let pcb = _ProcessManager.getPCB(pid);
+                if (pcb != undefined && pcb.state !== "Terminated") {
                     _CPU.startProcess(pcb);
+                } else {
+                    if (_SarcasticMode) {
+                        _StdOut.putText("You idiot, there is not program with that ID.");
+                    } else {
+                        _StdOut.putText("Program ID <" + pid + "> is invalid.");
+                    }
                 }
                 Control.highlightMemoryDisplay();
             }
@@ -553,10 +560,15 @@ module TSOS {
 
 
         public shellRunAll(args: string[]) {
+            let count = 0;
             for (let process of _ProcessManager.getProcessList()){
                 if (process.getState() == "New"){
                     _CPU.startProcess(process);
+                    count++;
                 }
+            }
+            if (count == 0) {
+                _StdOut.putText("No processes were found.");
             }
             Control.highlightMemoryDisplay();
         }
