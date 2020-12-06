@@ -188,9 +188,15 @@ module TSOS {
             _Console.advanceLine();
             let pcb = _ProcessManager.getPCB(params[1]);
             if (pcb !== undefined){
+                _Console.putText("-----------------------------");
+                _Console.advanceLine();
+                _Console.putText("Process ID: " + pcb.getPID());
+                _Console.advanceLine();
                 _Console.putText("Wait Time: " + pcb.waitingTime);
                 _Console.advanceLine();
                 _Console.putText("Turnaround Time: " + pcb.turnaroundTime);
+                _Console.advanceLine();
+                _Console.putText("-----------------------------");
                 _Console.advanceLine();
             }
             _Console.putText(_OsShell.promptStr);
