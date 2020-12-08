@@ -86,7 +86,22 @@ module TSOS {
         }
 
         public deleteFile(params) {
-
+            let dirKey = _HardDriveManager.findDir(params[0]);
+            // Key does not exist in the filenameDict
+            if (dirKey !== null){
+                let dirTSB = _HardDriveManager.getTSB(dirKey);
+                let fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                alert(fileTSB);
+                // Set new key in dict
+                delete _HardDriveManager.filenameDict[dirKey];
+                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "0" + fileTSB);
+                _HardDriveManager.cascadeUnset(fileTSB, _HardDriveManager.getHead(parseInt(
+                    fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))));
+            }
+            // We must create an entry in filenameDict
+            else {
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+            }
         }
 
         public format(params) {

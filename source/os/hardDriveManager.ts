@@ -229,7 +229,20 @@ module TSOS {
             if (key === undefined){
                 return null;
             } else {
-                return key.split("").join(":");
+                return key;
+            }
+        }
+        cascadeUnset(diskEntryTSB: string, diskEntryHead: string){
+            let thisTSB = diskEntryTSB.split("");
+            let nextTSB = diskEntryHead.slice(1);
+            let tsb = nextTSB.split("");
+            alert(nextTSB);
+            if (nextTSB === "000"){
+                _HardDriveManager.setHead(parseInt(thisTSB[0]),parseInt(thisTSB[1]),parseInt(thisTSB[2]), "0" + nextTSB);
+                return;
+            } else {
+                _HardDriveManager.setHead(parseInt(thisTSB[0]),parseInt(thisTSB[1]),parseInt(thisTSB[2]), "0" + nextTSB);
+                this.cascadeUnset(nextTSB, _HardDriveManager.getHead(parseInt(tsb[0]),parseInt(tsb[1]),parseInt(tsb[2])));
             }
         }
     }

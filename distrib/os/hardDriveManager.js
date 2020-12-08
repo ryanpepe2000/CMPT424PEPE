@@ -211,7 +211,21 @@ var TSOS;
                 return null;
             }
             else {
-                return key.split("").join(":");
+                return key;
+            }
+        };
+        HardDriveManager.prototype.cascadeUnset = function (diskEntryTSB, diskEntryHead) {
+            var thisTSB = diskEntryTSB.split("");
+            var nextTSB = diskEntryHead.slice(1);
+            var tsb = nextTSB.split("");
+            alert(nextTSB);
+            if (nextTSB === "000") {
+                _HardDriveManager.setHead(parseInt(thisTSB[0]), parseInt(thisTSB[1]), parseInt(thisTSB[2]), "0" + nextTSB);
+                return;
+            }
+            else {
+                _HardDriveManager.setHead(parseInt(thisTSB[0]), parseInt(thisTSB[1]), parseInt(thisTSB[2]), "0" + nextTSB);
+                this.cascadeUnset(nextTSB, _HardDriveManager.getHead(parseInt(tsb[0]), parseInt(tsb[1]), parseInt(tsb[2])));
             }
         };
         return HardDriveManager;
