@@ -38,6 +38,12 @@ module TSOS {
             _krnKeyboardDriver.driverEntry();                    // Call the driverEntry() initialization routine.
             this.krnTrace(_krnKeyboardDriver.status);
 
+            // Load the Hard Drive Device Driver
+            this.krnTrace("Loading the hard drive device driver.");
+            _krnHDDriver = new DeviceDriverHardDrive();
+            _krnHDDriver.driverEntry();
+            this.krnTrace(_krnHDDriver.status);
+
             //
             // ... more?
             //
@@ -140,6 +146,12 @@ module TSOS {
                 case PROCESS_ERROR_IRQ:
                     this.krnProcessError(params);     // Kernel system call to print user program output
                     break;
+                case DISK_OPERATION_IRQ:
+                    _krnHDDriver.isr(params);         // Kernel mode device driver for disk ops
+                    break;
+                case DISK_OPERATION_ERROR_IRQ:
+                    this.krnDiskOpError(params);         // Kernel mode device driver for disk operation error
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -218,6 +230,11 @@ module TSOS {
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
         }
+        public krnDiskOpError(params: any[]) {
+            _Console.putText(params[0]);
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+        }
 
         //
         // OS Utility Routines
@@ -248,5 +265,6 @@ module TSOS {
             }, 5000);
             this.krnShutdown();
         }
+
     }
 }

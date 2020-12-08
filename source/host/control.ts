@@ -114,6 +114,12 @@ module TSOS {
             _MemoryAccessor = new MemoryAccessor();
             _MMU = new MemoryManager();
 
+            // Create and initialize the HardDrive (physical) and HardDriveManager (logical) units
+            _HardDrive = new HardDrive();
+            _HardDriveManager = new HardDriveManager(); // Link manager to hard drive
+            _HardDriveManager.init();
+
+
             // Create and initialize the process manager
             _ProcessManager = new ProcessManager();
 
@@ -262,6 +268,30 @@ module TSOS {
                     }
                 }
             }
+        }
+
+        // Builds the Hard Drive display and constantly updates
+        static updateHDDisplay() {
+            let table = document.getElementById('hard-drive');
+            let tableContent = "<tbody>";
+            // Loop through the Hard Drive storage
+            for (let i = 0; i < _HardDriveManager.getTracks(); i++){
+                for (let j = 0; j < _HardDriveManager.getSectors(); j++){
+                    for (let k = 0; k < _HardDriveManager.getBlocks(); k++){
+                        // Get the TSB content
+                        let content = _HardDriveManager.readNoFormat(i,j,k);
+                        // Add a row to the table
+                        tableContent+=`<tr id="tsb-${i}-${j}-${k}">`;
+                            tableContent+=`<td style="color: grey">${_HardDrive.translateKey(i,j,k)}</td>`;
+                            tableContent+=`<td style="color: darkred">${Utils.diskTextToAscii(content.slice(0,2))}</td>`;
+                            tableContent+=`<td style="color: black">${Utils.diskTextToAscii(content.slice(2,8))}</td>`;
+                            tableContent+=`<td style="color: dodgerblue">${content.slice(8)}</td>`;
+                        tableContent+=`</tr>`;
+                    }
+                }
+            }
+            tableContent += "</tbody>";
+            table.innerHTML = tableContent;
         }
     }
 }

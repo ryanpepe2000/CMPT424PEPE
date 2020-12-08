@@ -153,9 +153,41 @@ module TSOS {
                 "- Lists all processes in ready queue and their state.");
             this.commandList[this.commandList.length] = sc;
 
+            // format
+            sc = new ShellCommand(this.shellFormatDisk,
+                "format",
+                "- Formats the hard drive and reinitializes all values.");
+            this.commandList[this.commandList.length] = sc;
 
-            // ps  - list the running processes and their IDs
-            // kill <id> - kills the specified process id.
+            // create
+            sc = new ShellCommand(this.shellCreateFile,
+                "create",
+                "- <filename> Creates a file");
+            this.commandList[this.commandList.length] = sc;
+
+            // read
+            sc = new ShellCommand(this.shellReadFile,
+                "read",
+                "- <filename> Reads a specified file");
+            this.commandList[this.commandList.length] = sc;
+
+            // write
+            sc = new ShellCommand(this.shellWriteFile,
+                "write",
+                "- <filename> Writes to a specified file");
+            this.commandList[this.commandList.length] = sc;
+
+            // list
+            sc = new ShellCommand(this.shellListFiles,
+                "ls",
+                "- <filename> Lists all files in the directory");
+            this.commandList[this.commandList.length] = sc;
+
+            // delete
+            sc = new ShellCommand(this.shellDeleteFile,
+                "delete",
+                "- <filename> Deletes a file");
+            this.commandList[this.commandList.length] = sc;
 
             // Display the initial prompt.
             this.putPrompt();
@@ -401,6 +433,18 @@ module TSOS {
                     case "ps":
                         _StdOut.putText("Lists all processes and their states");
                         break;
+                    case "format":
+                        _StdOut.putText("Reformats the file system");
+                        break;
+                    case "create":
+                        _StdOut.putText("Creates a file");
+                        break;
+                    case "write":
+                        _StdOut.putText("Writes to a file");
+                        break;
+                    case "delete":
+                        _StdOut.putText("Deletes a file");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -615,6 +659,35 @@ module TSOS {
             }
         }
 
+        // File System Commands
+        public shellCreateFile(args: string[]){
+            args = ["create"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        public shellReadFile(args: string[]){
+            args = ["read"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        public shellWriteFile(args: string[]){
+            args = ["write"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        public shellDeleteFile(args: string[]){
+            args = ["delete"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        public shellListFiles(args: string[]){
+            args = ["list"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        public shellFormatDisk(args: string[]){
+            args = ["format"].concat(args);
+            TSOS.Shell.shellDiskOp(args);
+        }
+        private static shellDiskOp(args: string[]) {
+            // Enqueue a new interrupt to process the disk operation
+            _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, args));
+        }
     }
 
     // Console history is used in traversal of previous commands.

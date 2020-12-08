@@ -32,6 +32,7 @@
     <script type="text/javascript" src="distrib/os/queue.js"></script>
     <script type="text/javascript" src="distrib/os/shell.js"></script>
     <script type="text/javascript" src="distrib/os/scheduler.js"></script>
+    <script type="text/javascript" src="distrib/os/hardDriveManager.js"></script>
     <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
     <script type="text/javascript" src="distrib/os/userCommand.js"></script>
     <script type="text/javascript" src="distrib/os/kernel.js"></script>
@@ -171,11 +172,19 @@
                                   id  ="taProgramInput"
                                   rows="4"
                                   style="width:100% "
-                        >
-                            A9 03 8D 41 00 A9 01 8D 40 00 AC 40 00 A2 01 FF EE 40 00
-                            AE 40 00 EC 41 00 D0 EF A9 44 8D 42 00 A9 4F 8D 43 00 A9
-                            4E 8D 44 00 A9 45 8D 45 00 A9 00 8D 46 00 A2 02 A0 42 FF
+                        >A9 03 8D 41 00 A9 01 8D 40 00 AC 40 00 A2 01 FF EE 40 00 AE 40 00 EC 41 00 D0 EF A9 44 8D 42 00 A9 4F 8D 43 00 A9 4E 8D 44 00 A9 45 8D 45 00 A9 00 8D 46 00 A2 02 A0 42 FF
                         </textarea>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!-- Hard Drive -->
+            <div class="row">
+                <div id="divHardDrive" class="card" style="width: 100%">
+                    <div class="card-header">Hard Drive</div>
+                    <div class="card-body" style="overflow: auto; max-height:200px">
+                        <table id="hard-drive" class="table table-responsive-sm text-center">
+                        </table>
                     </div>
                 </div>
             </div>
@@ -186,7 +195,7 @@
             <div class="card">
                 <div class="card-header">Memory</div>
                 <div class="card-body">
-                    <table id="memory" class="table table-responsive text-center">
+                    <table id="memory" class="table text-center">
                     </table>
                 </div>
             </div>

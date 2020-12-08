@@ -30,7 +30,7 @@ var TSOS;
             // So instead...
             _super.call(this) || this;
             // Initialize a dictionary with operations and respective service routines
-            _this.ACTION = {
+            _this.OPERATIONS = {
                 "create": _this.createFile,
                 "read": _this.readFile,
                 "write": _this.writeFile,
@@ -42,14 +42,48 @@ var TSOS;
             _this.isr = _this.krnHDDispatch;
             return _this;
         }
+        DeviceDriverHardDrive.prototype.isValidOperation = function (operation) {
+            return this.OPERATIONS[operation] !== undefined;
+        };
         DeviceDriverHardDrive.prototype.krnHDDriverEntry = function () {
             // Initialization routine for this, the kernel-mode Disk Device Driver.
             this.status = "loaded";
-            // More?
         };
         DeviceDriverHardDrive.prototype.krnHDDispatch = function (params) {
+            // Get name of disk operation and remove it from param list
+            var operation = params[0];
+            params = params.slice(1);
+            // Check validity of operation
+            if (this.isValidOperation(operation)) {
+                // Run the specified operation
+                this.OPERATIONS[operation](params);
+            }
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid Disk Operation"]));
+            }
         };
         DeviceDriverHardDrive.prototype.createFile = function (params) {
+            var dirKey = _HardDriveManager.findDir(params[0]);
+            // Key does not exist in the filenameDict
+            if (dirKey === null) {
+                // Set new key in dict
+                dirKey = _HardDriveManager.getOpenDirKey();
+                _HardDriveManager.filenameDict[params[0]] = dirKey;
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                // Get next open file location and set it to in use
+                var fileTSB = _HardDriveManager.getTSB(_HardDriveManager.getOpenFileKey());
+                _HardDriveManager.setHead(fileTSB[0], fileTSB[1], fileTSB[2], "1000");
+                // Write filename to directory entry
+                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "1" + fileTSB.join(""));
+                _HardDriveManager.setBody(dirTSB[0], dirTSB[1], dirTSB[2], params[0]);
+                // Update MBR
+                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+            }
+            // We must create an entry in filenameDict
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File already exists."]));
+            }
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
         };
@@ -58,6 +92,8 @@ var TSOS;
         DeviceDriverHardDrive.prototype.deleteFile = function (params) {
         };
         DeviceDriverHardDrive.prototype.format = function (params) {
+            _HardDriveManager.filenameDict = {};
+            _HardDriveManager.init();
         };
         DeviceDriverHardDrive.prototype.listFiles = function (params) {
         };

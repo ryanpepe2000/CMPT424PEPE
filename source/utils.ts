@@ -67,5 +67,36 @@ module TSOS {
                 return 0;
             } else return this.hexToDec(retval);
         }
+
+        /** asciiToDiskText
+         *
+         * Converts ascii text to formatted ascii text for storage in disk
+         *
+         */
+        public static asciiToDiskText(str: string, blockLength: number): string {
+            let retval = "";
+            for (let i = str.length; i < blockLength; i++) {
+                str += "\0\0";
+            }
+            for (let i = 0; i < str.length; i++) {
+                retval += '' + str.charCodeAt(i).toString(16);
+            }
+            return retval;
+        }
+
+        /**
+         * diskTextToAscii
+         *
+         * Converts disk text to formatted ascii text
+         */
+        public static diskTextToAscii(diskText): string {
+            let retval = "";
+            for (let i = 0; i < diskText.length; i += 2) {
+                let chrCode = parseInt("0x" + diskText.substr(i, 2));
+                let character = (chrCode === 0) ? "0" : String.fromCharCode(chrCode);
+                retval += character;
+            }
+            return retval;
+        }
     }
 }

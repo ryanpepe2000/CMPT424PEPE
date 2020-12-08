@@ -30,6 +30,10 @@ const CONTEXT_SWITCH_IRQ: number = 5;
 
 const PROCESS_ERROR_IRQ: number = 6;
 
+const DISK_OPERATION_IRQ: number = 7;
+
+const DISK_OPERATION_ERROR_IRQ: number = 8;
+
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 const MEMORY_BLOCKS: number = 3;
 
@@ -44,9 +48,11 @@ let _Quantum = 6;
 let _Memory: TSOS.Memory;
 let _MemoryAccessor: TSOS.MemoryAccessor;
 let _Scheduler: TSOS.Scheduler;
+let _HardDrive: TSOS.HardDrive;
 
 // Software (OS)
 let _MMU: TSOS.MemoryManager;
+let _HardDriveManager: TSOS.HardDriveManager;
 
 // Process Implementations
 let _ProcessManager: TSOS.ProcessManager = null;
@@ -85,6 +91,7 @@ let _SarcasticMode: boolean = false;
 
 // Global Device Driver Objects - page 12
 let _krnKeyboardDriver: TSOS.DeviceDriverKeyboard  = null;
+let _krnHDDriver: TSOS.DeviceDriverHardDrive = null;
 
 let _hardwareClockID: number = null;
 

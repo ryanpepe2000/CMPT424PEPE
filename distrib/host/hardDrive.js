@@ -2,24 +2,17 @@
    HardDrive.ts
 
    ---------------------------------- */
-module TSOS{
-    export class HardDrive{
-        // Size of hard drive components (TSB and block size)
-        private numTracks;
-        private numSectors;
-        private numBlocks;
-        private blockLength;
-
-        constructor() {
+var TSOS;
+(function (TSOS) {
+    var HardDrive = /** @class */ (function () {
+        function HardDrive() {
         }
-
-        public init(numTracks: number, numSectors: number, numBlocks: number, blockLength: number): void {
+        HardDrive.prototype.init = function (numTracks, numSectors, numBlocks, blockLength) {
             this.numTracks = numTracks;
             this.numSectors = numSectors;
             this.numBlocks = numBlocks;
             this.blockLength = blockLength;
-        }
-
+        };
         /**
          * write
          *
@@ -30,11 +23,10 @@ module TSOS{
          * @param block
          * @param value
          */
-        public write(track:number, sector:number, block:number, value:string): void {
-            let key = this.translateKey(track,sector,block);
+        HardDrive.prototype.write = function (track, sector, block, value) {
+            var key = this.translateKey(track, sector, block);
             sessionStorage.setItem(key, value);
-        }
-
+        };
         /**
          * read
          *
@@ -43,11 +35,10 @@ module TSOS{
          * @param sector
          * @param block
          */
-        public read(track:number, sector:number, block:number): string {
-            let key = this.translateKey(track,sector,block);
+        HardDrive.prototype.read = function (track, sector, block) {
+            var key = this.translateKey(track, sector, block);
             return sessionStorage.getItem(key);
-        }
-
+        };
         /**
          * translateKey
          *
@@ -58,21 +49,22 @@ module TSOS{
          * @param sector
          * @param block
          */
-        public translateKey(track: number, sector: number, block: number): string{
+        HardDrive.prototype.translateKey = function (track, sector, block) {
             return track + ":" + sector + ":" + block;
-        }
-
-        public getTracks(): number {
+        };
+        HardDrive.prototype.getTracks = function () {
             return this.numTracks;
-        }
-        public getSectors(): number {
+        };
+        HardDrive.prototype.getSectors = function () {
             return this.numSectors;
-        }
-        public getBlocks(): number {
+        };
+        HardDrive.prototype.getBlocks = function () {
             return this.numBlocks;
-        }
-        public getBlockSize(): number {
+        };
+        HardDrive.prototype.getBlockSize = function () {
             return this.blockLength;
-        }
-    }
-}
+        };
+        return HardDrive;
+    }());
+    TSOS.HardDrive = HardDrive;
+})(TSOS || (TSOS = {}));
