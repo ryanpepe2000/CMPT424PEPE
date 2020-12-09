@@ -79,10 +79,12 @@ var TSOS;
                 // Update MBR
                 _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
                 _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                return true;
             }
             // We must create an entry in filenameDict
             else {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File already exists."]));
+                return false;
             }
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
@@ -128,7 +130,6 @@ var TSOS;
                     // Reset all blocks associated with this file
                     var nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
                     while (nextRef !== "000") {
-                        alert(nextRef);
                         // Get the TSB to be updated
                         var nextTSB = nextRef.split("");
                         // Get the reference of the referenced block
@@ -138,15 +139,20 @@ var TSOS;
                     }
                     // Write the text to the file
                     _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), fileText);
+                    // Update MBR to reflect block usage
+                    _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                    return true;
                 }
                 // Invalid parameters (text probably not surrounded with quotes)
                 else {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid usage. Type 'help' for more details"]));
+                    return false;
                 }
             }
             // File name DNE in directory
             else {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                return false;
             }
         };
         DeviceDriverHardDrive.prototype.deleteFile = function (params) {

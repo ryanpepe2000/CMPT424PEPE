@@ -184,12 +184,13 @@ var TSOS;
                 _HardDriveManager.setBody(track, sector, block, thisText);
                 // Update MBR to reflect block usage
                 _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
-                this.writeImmediate(nextTSB[0], nextTSB[1], nextTSB[2], nextText);
+                return this.writeImmediate(nextTSB[0], nextTSB[1], nextTSB[2], nextText);
             }
             else {
-                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey()); // MAYBE DELETE
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
                 _HardDriveManager.setHead(track, sector, block, "1000");
                 _HardDriveManager.setBody(track, sector, block, text);
+                return true;
             }
         };
         /**

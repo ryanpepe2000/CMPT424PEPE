@@ -53,7 +53,7 @@ module TSOS {
             }
         }
 
-        public createFile(params) {
+        public createFile(params): boolean {
             let dirKey = _HardDriveManager.findDir(params[0]);
             // Key does not exist in the filenameDict
             if (dirKey === null){
@@ -70,10 +70,12 @@ module TSOS {
                 // Update MBR
                 _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
                 _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                return true;
             }
             // We must create an entry in filenameDict
             else {
                 _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File already exists."]));
+                return false;
             }
         }
 
@@ -101,7 +103,7 @@ module TSOS {
             }
         }
 
-        public writeFile(params) {
+        public writeFile(params): boolean {
             // Get Filename
             let filename = params[0];
             let dirKey = _HardDriveManager.findDir(filename);
@@ -125,7 +127,6 @@ module TSOS {
                     // Reset all blocks associated with this file
                     let nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
                     while (nextRef !== "000"){
-                        alert(nextRef);
                         // Get the TSB to be updated
                         let nextTSB = nextRef.split("");
                         // Get the reference of the referenced block
@@ -135,15 +136,20 @@ module TSOS {
                     }
                     // Write the text to the file
                     _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), fileText);
+                    // Update MBR to reflect block usage
+                    _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                    return true;
                 }
                 // Invalid parameters (text probably not surrounded with quotes)
                 else {
                     _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid usage. Type 'help' for more details"]));
+                    return false;
                 }
             }
             // File name DNE in directory
             else {
                 _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                return false;
             }
         }
 

@@ -533,8 +533,24 @@ module TSOS {
                         _MMU.fillSegment(segment, userCode);
                         _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                     }
-                } else {
-                    _StdOut.putText("Valid Code. Memory is not currently available.");
+                }
+                // Create a swap file and write code to it
+                else {
+                    if (userCode.length - 1 > MEMORY_LENGTH){
+                        _StdOut.putText("Valid Code. Program is too long.");
+                        return;
+                    } else {
+                        // Create PCB and add it to the Resident List and write to the disk
+                        let pcb: ProcessControlBlock = _ProcessManager.createProcess(_ProcessManager.HARD_DRIVE);
+                        // Create the swap
+                        let filename = ".~swap" + pcb.getPID();
+                        // Reformat the code in quotes and add '00' at the end to guarantee termination
+                        let code = '"' + userCode.join("") + '00"';
+                        // Call HD device driver functions to create and write to a swap file
+                        _krnHDDriver.createFile([filename]);
+                        _krnHDDriver.writeFile([filename, code]);
+                        _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                    }
                 }
             } else {
                 _StdOut.putText("Invalid program syntax.");
