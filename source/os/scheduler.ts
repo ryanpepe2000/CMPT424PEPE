@@ -15,12 +15,7 @@ module TSOS {
         public runProcess(pcb: ProcessControlBlock){
             // Admitted pcb will be added to the ready queue
             _ProcessManager.getReadyQueue().enqueue(pcb.setState("Ready"));
-            // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
-            // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
-
-            // Temporarily using this.contextSwitch until a solution is found.
             _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
-            this.contextSwitch();
         }
 
         public killProcess(pcb: ProcessControlBlock){

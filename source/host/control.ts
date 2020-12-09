@@ -198,11 +198,15 @@ module TSOS {
             let tableContent =
                 "<tbody>" +
                     "<tr>" +
-                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th><th>Segment</th>" +
+                        "<th>PID</th><th>PC</th><th>Acc</th><th>X</th><th>Y</th><th>Z</th><th>State</th><th>Location</th>" +
                     "</tr>";
             if (_ProcessManager.getProcessList().length > 0){
                 for (let pid = 0; pid < _ProcessManager.getProcessList().length; pid++){
                     let process =  _ProcessManager.getPCB(pid);
+                    let location = "Segment " + (process.getSegment()+1);
+                    if (process.getSegment() == _ProcessManager.HARD_DRIVE)
+                        location = "Hard Drive";
+
                     tableContent += (
                         `<tr>` +
                             `<td>${pid}</td>` +
@@ -212,7 +216,7 @@ module TSOS {
                             `<td>${process.getYReg()}</td>` +
                             `<td>${process.getZFlag()}</td>` +
                             `<td>${process.getState()}</td>` +
-                            `<td>${process.getSegment()}</td>` +
+                            `<td>${location}</td>` +
                         `</tr>`
                     );
                 }

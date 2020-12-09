@@ -11,10 +11,10 @@
 
 module TSOS {
     export class ProcessManager {
+        public readonly SEGMENT_ZERO = 0;
         public readonly SEGMENT_ONE = 1;
         public readonly SEGMENT_TWO = 2;
-        public readonly SEGMENT_THREE = 3;
-        public readonly HARD_DRIVE = 4;
+        public readonly HARD_DRIVE = 3;
 
         constructor(private processes: Array<ProcessControlBlock> = new Array<ProcessControlBlock>(),
                     private readyQueue: Queue = new Queue(),

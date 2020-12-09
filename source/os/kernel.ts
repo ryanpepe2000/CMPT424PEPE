@@ -190,8 +190,7 @@ module TSOS {
         }
 
         public krnContextSwitch(params: any[]){
-            // Temporarily commenting until krn error is resolved
-            //_Scheduler.contextSwitch();
+            _Scheduler.contextSwitch();
             this.krnTrace("Performing Context Switch");
         }
 
@@ -234,6 +233,7 @@ module TSOS {
             _Console.putText(_OsShell.promptStr);
         }
         public krnDiskOpError(params: any[]) {
+            _Console.advanceLine();
             _Console.putText(params[0]);
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);

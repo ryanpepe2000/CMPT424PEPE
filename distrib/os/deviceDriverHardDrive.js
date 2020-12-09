@@ -89,22 +89,28 @@ var TSOS;
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
             var buffer = "";
-            var dirKey = _HardDriveManager.findDir(params[0]);
-            // Key does not exist in the filenameDict
-            if (dirKey !== null) {
-                var dirTSB = _HardDriveManager.getTSB(dirKey);
-                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
-                var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
-                do {
-                    var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
-                    buffer += fileText;
-                    nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
-                } while (nextTSB !== "000");
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+            var filename = params[0];
+            if (filename.indexOf("~") === -1) {
+                var dirKey = _HardDriveManager.findDir(params[0]);
+                // Key does not exist in the filenameDict
+                if (dirKey !== null) {
+                    var dirTSB = _HardDriveManager.getTSB(dirKey);
+                    var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                    var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
+                    do {
+                        var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
+                        buffer += fileText;
+                        nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
+                    } while (nextTSB !== "000");
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+                }
+                // We must create an entry in filenameDict
+                else {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                }
             }
-            // We must create an entry in filenameDict
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid character '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.writeFile = function (params) {

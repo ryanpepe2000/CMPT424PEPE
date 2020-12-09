@@ -25,10 +25,10 @@ module TSOS {
             // key --> ASCII code string
             // val --  Character string
             this.symbolList = this.symbolList.set(222, "'").set(188, ",").set(189, "-").set(190, ".").set(191, "/").set(186,";").set(187, "=")
-                .set(219,"[").set(220,"\\").set(221,"]").set(176, "`");
+                .set(219,"[").set(220,"\\").set(221,"]").set(192, "`");
             this.shiftedList = this.shiftedList.set(48,")").set(49,"!").set(50,"@").set(51,"#").set(52,"$").set(53,"%")
                 .set(54,"^").set(55,"&").set(56,"*").set(57,"(").set(222, "\"").set(188, "<").set(189, "_").set(190, ">")
-                .set(191, "?").set(186,":").set(187, "+").set(219,"{").set(220,"|").set(221,"}").set(176, "~");
+                .set(191, "?").set(186,":").set(187, "+").set(219,"{").set(220,"|").set(221,"}").set(192, "~");
 
             this.driverEntry = this.krnKbdDriverEntry;
             this.isr = this.krnKbdDispatchKeyPress;

@@ -81,26 +81,32 @@ module TSOS {
 
         public readFile(params) {
             let buffer = "";
-            let dirKey = _HardDriveManager.findDir(params[0]);
-            // Key does not exist in the filenameDict
-            if (dirKey !== null){
-                let dirTSB = _HardDriveManager.getTSB(dirKey);
-                let fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
-                let nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)),
-                    parseInt(fileTSB.charAt(2))).slice(1);
-                do {
-                    let fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)),
-                        parseInt(fileTSB.charAt(2)));
-                    buffer += fileText;
-                    nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)),
-                        parseInt(nextTSB.charAt(2))).slice(1);
-                } while (nextTSB !== "000");
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+            let filename:string = params[0];
+            if (filename.indexOf("~") === -1){
+                let dirKey = _HardDriveManager.findDir(params[0]);
+                // Key does not exist in the filenameDict
+                if (dirKey !== null){
+                    let dirTSB = _HardDriveManager.getTSB(dirKey);
+                    let fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                    let nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)),
+                        parseInt(fileTSB.charAt(2))).slice(1);
+                    do {
+                        let fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)),
+                            parseInt(fileTSB.charAt(2)));
+                        buffer += fileText;
+                        nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)),
+                            parseInt(nextTSB.charAt(2))).slice(1);
+                    } while (nextTSB !== "000");
+                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+                }
+                // We must create an entry in filenameDict
+                else {
+                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                }
+            } else {
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid character '~'."]));
             }
-            // We must create an entry in filenameDict
-            else {
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
-            }
+
         }
 
         public writeFile(params): boolean {
