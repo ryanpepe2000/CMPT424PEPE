@@ -152,6 +152,9 @@ module TSOS {
                 case DISK_OPERATION_ERROR_IRQ:
                     this.krnDiskOpError(params);         // Kernel mode device driver for disk operation error
                     break;
+                case DISK_READ_OUTPUT_IRQ:
+                    this.krnDiskOutput(params);     // Kernel system call to print file contents from disk buffer
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -235,7 +238,13 @@ module TSOS {
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);
         }
-
+        public krnDiskOutput(params: any[]){
+            for (let chr of params){
+                _Console.putText(chr);
+            }
+            _Console.advanceLine();
+            _Console.putText(_OsShell.promptStr);
+        }
         //
         // OS Utility Routines
         //

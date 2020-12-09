@@ -86,8 +86,68 @@ var TSOS;
             }
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
+            var buffer = "";
+            var dirKey = _HardDriveManager.findDir(params[0]);
+            // Key does not exist in the filenameDict
+            if (dirKey !== null) {
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
+                do {
+                    var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
+                    buffer += fileText;
+                    nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
+                } while (nextTSB !== "000");
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+            }
+            // We must create an entry in filenameDict
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+            }
         };
         DeviceDriverHardDrive.prototype.writeFile = function (params) {
+            // Get Filename
+            var filename = params[0];
+            var dirKey = _HardDriveManager.findDir(filename);
+            // File name exists in the directory
+            if (dirKey !== null) {
+                // Collect the file text
+                var fileText = "";
+                var i = 1;
+                while (params[i] !== undefined) {
+                    fileText += params[i] + " ";
+                    i++;
+                }
+                // Remove white space on both sides of quotes
+                fileText = fileText.replace(/((\s)+^)|(\s+$)/, "");
+                // Valid file text was entered
+                if (fileText.charAt(0) === '"' && fileText.charAt(fileText.length - 1) === '"') {
+                    fileText = fileText.substring(1, fileText.length - 1);
+                    var dirTSB = _HardDriveManager.getTSB(dirKey);
+                    var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1).split("");
+                    // Reset all blocks associated with this file
+                    var nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
+                    while (nextRef !== "000") {
+                        alert(nextRef);
+                        // Get the TSB to be updated
+                        var nextTSB = nextRef.split("");
+                        // Get the reference of the referenced block
+                        nextRef = _HardDriveManager.getHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2])).slice(1);
+                        // Update the head of the current block
+                        _HardDriveManager.setHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2]), "0000");
+                    }
+                    // Write the text to the file
+                    _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), fileText);
+                }
+                // Invalid parameters (text probably not surrounded with quotes)
+                else {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid usage. Type 'help' for more details"]));
+                }
+            }
+            // File name DNE in directory
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+            }
         };
         DeviceDriverHardDrive.prototype.deleteFile = function (params) {
             var dirKey = _HardDriveManager.findDir(params[0]);
@@ -99,6 +159,7 @@ var TSOS;
                 // Set new key in dict
                 delete _HardDriveManager.filenameDict[dirKey];
                 _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "0" + fileTSB);
+                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
                 _HardDriveManager.cascadeUnset(fileTSB, _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))));
             }
             // We must create an entry in filenameDict
@@ -107,8 +168,14 @@ var TSOS;
             }
         };
         DeviceDriverHardDrive.prototype.format = function (params) {
-            _HardDriveManager.filenameDict = {};
-            _HardDriveManager.init();
+            var canFormat = true;
+            if (canFormat) {
+                _HardDriveManager.filenameDict = {};
+                _HardDriveManager.init();
+            }
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Format could not be performed"]));
+            }
         };
         DeviceDriverHardDrive.prototype.listFiles = function (params) {
         };

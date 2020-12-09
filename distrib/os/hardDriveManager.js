@@ -158,6 +158,41 @@ var TSOS;
             TSOS.Control.updateHDDisplay();
         };
         /**
+         * writeImmediate
+         *
+         * Helper function to be used by device driver. Will directly write
+         * text to a specified TSB and cascade writes as necessary. This
+         * method will only be used if the device driver guarentees that a file should
+         * be written with text
+         *
+         * @param track
+         * @param sector
+         * @param block
+         * @param text
+         */
+        HardDriveManager.prototype.writeImmediate = function (track, sector, block, text) {
+            // Write the text to blocks
+            if (text.length > _HardDriveManager.BODY_LENGTH) {
+                // Split the text into a usable size
+                var thisText = text.slice(0, _HardDriveManager.BODY_LENGTH);
+                var nextText = text.substr(_HardDriveManager.BODY_LENGTH);
+                // Get the next available block
+                var nextKey = _HardDriveManager.getOpenFileKey();
+                var nextTSB = _HardDriveManager.getTSB(nextKey);
+                // Write the first text to the current block
+                _HardDriveManager.setHead(track, sector, block, "1" + nextKey.split(":").join(""));
+                _HardDriveManager.setBody(track, sector, block, thisText);
+                // Update MBR to reflect block usage
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                this.writeImmediate(nextTSB[0], nextTSB[1], nextTSB[2], nextText);
+            }
+            else {
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey()); // MAYBE DELETE
+                _HardDriveManager.setHead(track, sector, block, "1000");
+                _HardDriveManager.setBody(track, sector, block, text);
+            }
+        };
+        /**
          * read
          *
          * Calls the hard drives built-in read method

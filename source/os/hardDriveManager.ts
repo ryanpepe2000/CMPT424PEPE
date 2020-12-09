@@ -8,20 +8,20 @@ module TSOS {
      */
     export class HardDriveManager {
         // Initialize meta constants
-        private readonly NUM_TRACKS = 4;
-        private readonly NUM_SECTORS = 8;
-        private readonly NUM_BLOCKS = 8;
-        private readonly BLOCK_LENGTH = 64;
-        private readonly HEADER_LENGTH = 4;
-        private readonly BODY_LENGTH = this.BLOCK_LENGTH - this.HEADER_LENGTH;
+        public readonly NUM_TRACKS = 4;
+        public readonly NUM_SECTORS = 8;
+        public readonly NUM_BLOCKS = 8;
+        public readonly BLOCK_LENGTH = 64;
+        public readonly HEADER_LENGTH = 4;
+        public readonly BODY_LENGTH = this.BLOCK_LENGTH - this.HEADER_LENGTH;
 
         // Directory and File Storage Size
-        private readonly DIR_TRACKS = 1;
-        private readonly FILE_TRACKS = this.NUM_TRACKS - this.DIR_TRACKS;
+        public readonly DIR_TRACKS = 1;
+        public readonly FILE_TRACKS = this.NUM_TRACKS - this.DIR_TRACKS;
 
         // Master Boot Record Constants
-        private readonly MBR_NEXT_DIR_LOC = [0,3];
-        private readonly MBR_NEXT_FILE_LOC = [3,6];
+        public readonly MBR_NEXT_DIR_LOC = [0,3];
+        public readonly MBR_NEXT_FILE_LOC = [3,6];
 
         // Hard Drive object to be used by the manager
         private hardDrive: HardDrive;
@@ -169,6 +169,41 @@ module TSOS {
             this.hardDrive.write(track, sector, block, formattedHex);
             // Update the memory display whenever something is being written
             Control.updateHDDisplay();
+        }
+
+        /**
+         * writeImmediate
+         *
+         * Helper function to be used by device driver. Will directly write
+         * text to a specified TSB and cascade writes as necessary. This
+         * method will only be used if the device driver guarentees that a file should
+         * be written with text
+         *
+         * @param track
+         * @param sector
+         * @param block
+         * @param text
+         */
+        public writeImmediate(track: number, sector: number, block: number, text: string){
+            // Write the text to blocks
+            if (text.length > _HardDriveManager.BODY_LENGTH){
+                // Split the text into a usable size
+                let thisText = text.slice(0, _HardDriveManager.BODY_LENGTH);
+                let nextText = text.substr(_HardDriveManager.BODY_LENGTH);
+                // Get the next available block
+                let nextKey = _HardDriveManager.getOpenFileKey();
+                let nextTSB = _HardDriveManager.getTSB(nextKey);
+                // Write the first text to the current block
+                _HardDriveManager.setHead(track, sector, block, "1" + nextKey.split(":").join(""));
+                _HardDriveManager.setBody(track, sector, block, thisText);
+                // Update MBR to reflect block usage
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+                this.writeImmediate(nextTSB[0], nextTSB[1], nextTSB[2], nextText);
+            } else {
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey()); // MAYBE DELETE
+                _HardDriveManager.setHead(track, sector, block, "1000");
+                _HardDriveManager.setBody(track, sector, block, text);
+            }
         }
 
         /**
