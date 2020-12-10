@@ -131,9 +131,6 @@ module TSOS {
                     _krnKeyboardDriver.isr(params);   // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
-                case CONTEXT_SWITCH_IRQ:
-                    this.krnContextSwitch(params);     // Kernel system call to print user program output
-                    break;
                 case EXECUTE_PROCESS_IRQ:
                     this.krnExecuteProcess();         // Kernel system call to execute a process
                     break;
@@ -152,8 +149,11 @@ module TSOS {
                 case DISK_OPERATION_ERROR_IRQ:
                     this.krnDiskOpError(params);         // Kernel mode device driver for disk operation error
                     break;
-                case DISK_READ_OUTPUT_IRQ:
+                case DISK_OUTPUT_IRQ:
                     this.krnDiskOutput(params);     // Kernel system call to print file contents from disk buffer
+                    break;
+                case CONTEXT_SWITCH_IRQ:
+                    this.krnContextSwitch(params);     // Kernel system call to print user program output
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -233,7 +233,6 @@ module TSOS {
             _Console.putText(_OsShell.promptStr);
         }
         public krnDiskOpError(params: any[]) {
-            _Console.advanceLine();
             _Console.putText(params[0]);
             _Console.advanceLine();
             _Console.putText(_OsShell.promptStr);

@@ -76,12 +76,17 @@ module TSOS {
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Running") {
-                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, _CPU.segment))));
+                    // Process is in memory
+                    if (pcb.getSegment() === _ProcessManager.HARD_DRIVE) {
+                        let memPCB = _ProcessManager.findProcessInMemory();
+                        _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, ["swap", memPCB, pcb]));
+                    }
+                    let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, this.segment))));
                     let pcInc = instruction.getPCInc();
                     // Need to pass proper physical addresses using logical address and segments
                     instruction.getCallback()([
-                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 1, _CPU.segment))),  // Next item in memory
-                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, _CPU.segment)))   // The following item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 1, this.segment))),  // Next item in memory
+                        _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, this.segment)))   // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
                         pcb.setState("Terminated")
@@ -105,6 +110,13 @@ module TSOS {
         // Begins execution of a process. To be called by shellRun
         public startProcess(pcb: ProcessControlBlock) {
             _Scheduler.runProcess(pcb);
+            if (!_SingleStep){
+                this.isExecuting = true;
+            }
+        }
+
+        public startAllProcesses() {
+            _Scheduler.runAllProcesses();
             if (!_SingleStep){
                 this.isExecuting = true;
             }
@@ -173,6 +185,10 @@ module TSOS {
 
         public disableZFlag() {
             this.Zflag = 0;
+        }
+
+        public updateSegment(newSegment: number){
+            this.segment = newSegment;
         }
     }
 

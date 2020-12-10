@@ -543,12 +543,12 @@ module TSOS {
                         // Create PCB and add it to the Resident List and write to the disk
                         let pcb: ProcessControlBlock = _ProcessManager.createProcess(_ProcessManager.HARD_DRIVE);
                         // Create the swap
-                        let filename = ".~swap" + pcb.getPID();
+                        let filename = "process-" + pcb.getPID()+ ".~swp";
                         // Reformat the code in quotes and add '00' at the end to guarantee termination
-                        let code = '"' + userCode.join("") + '00"';
+                        let code = userCode.join("");
                         // Call HD device driver functions to create and write to a swap file
-                        _krnHDDriver.createFile([filename]);
-                        _krnHDDriver.writeFile([filename, code]);
+                        _HardDriveManager.createFile(filename);
+                        _HardDriveManager.writeFile(filename, code);
                         _StdOut.putText("Process Loaded. PID: " + pcb.pid);
                     }
                 }
@@ -620,16 +620,7 @@ module TSOS {
 
 
         public shellRunAll(args: string[]) {
-            let count = 0;
-            for (let process of _ProcessManager.getProcessList()){
-                if (process.getState() == "New"){
-                    _CPU.startProcess(process);
-                    count++;
-                }
-            }
-            if (count == 0) {
-                _StdOut.putText("No processes were found.");
-            }
+            _CPU.startAllProcesses();
             Control.highlightMemoryDisplay();
         }
 

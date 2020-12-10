@@ -15,6 +15,7 @@ module TSOS {
         public readonly SEGMENT_ONE = 1;
         public readonly SEGMENT_TWO = 2;
         public readonly HARD_DRIVE = 3;
+        public readonly TERMINATED = 4;
 
         constructor(private processes: Array<ProcessControlBlock> = new Array<ProcessControlBlock>(),
                     private readyQueue: Queue = new Queue(),
@@ -38,6 +39,15 @@ module TSOS {
         public getRunning(): ProcessControlBlock{
             for (let pcb of this.getProcessList()){
                 if (pcb.getState() === "Running"){
+                    return pcb;
+                }
+            }
+        }
+
+        public findProcessInMemory(): ProcessControlBlock{
+            for (let pcb of this.getProcessList()){
+                // Find non terminated process in memory
+                if (pcb.getState() !== "Terminated" && pcb.getSegment() !== this.HARD_DRIVE){
                     return pcb;
                 }
             }
@@ -139,10 +149,14 @@ module TSOS {
             return this;
         }
 
+
         public getSegment(): number{
             return this.segment;
         }
 
+        public updateSegment(newSegment: number): void {
+            this.segment = newSegment;
+        }
         public incrementTime(){
             if (this.getState() === "Running"){
                 this.turnaroundTime++;

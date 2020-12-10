@@ -193,6 +193,95 @@ var TSOS;
             }
         };
         /**
+         * File Auxiliary Methods
+         */
+        HardDriveManager.prototype.createFile = function (filename) {
+            var dirKey = _HardDriveManager.findDir(filename);
+            // We must create an entry in filenameDict
+            if (dirKey === null) {
+                // Set new key in dict
+                dirKey = _HardDriveManager.getOpenDirKey();
+                _HardDriveManager.filenameDict[filename] = dirKey;
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                // Get next open file location and set it to in use
+                var fileTSB = _HardDriveManager.getTSB(_HardDriveManager.getOpenFileKey());
+                _HardDriveManager.setHead(fileTSB[0], fileTSB[1], fileTSB[2], "1000");
+                _HardDriveManager.setBody(fileTSB[0], fileTSB[1], fileTSB[2], "");
+                // Write filename to directory entry
+                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "1" + fileTSB.join(""));
+                _HardDriveManager.setBody(dirTSB[0], dirTSB[1], dirTSB[2], filename);
+                // Update MBR
+                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+            }
+            // Key exists in the filenameDict
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File already exists."]));
+            }
+        };
+        HardDriveManager.prototype.readFile = function (filename) {
+            var buffer = "";
+            var dirKey = _HardDriveManager.findDir(filename);
+            // File exists on the disk
+            if (dirKey !== null) {
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
+                do {
+                    var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
+                    buffer += fileText;
+                    nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
+                } while (nextTSB !== "000");
+                return buffer;
+            }
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File not found."]));
+            }
+        };
+        HardDriveManager.prototype.writeFile = function (filename, text) {
+            // Get key in directory
+            var dirKey = _HardDriveManager.findDir(filename);
+            // File name exists in the directory
+            if (dirKey !== null) {
+                //Get TSB of file
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1).split("");
+                // Reset all blocks associated with this file
+                var nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
+                while (nextRef !== "000") {
+                    // Get the TSB to be updated
+                    var nextTSB = nextRef.split("");
+                    // Get the reference of the referenced block
+                    nextRef = _HardDriveManager.getHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2])).slice(1);
+                    // Update the head of the current block
+                    _HardDriveManager.setHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2]), "0000");
+                }
+                // Write the text to the file
+                _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), text);
+                // Update MBR to reflect block usage
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+            }
+        };
+        HardDriveManager.prototype.deleteFile = function (filename) {
+            var dirKey = _HardDriveManager.findDir(filename);
+            // Key does not exist in the filenameDict
+            if (dirKey !== null) {
+                var dirTSB = _HardDriveManager.getTSB(dirKey);
+                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
+                // Set new key in dict
+                delete _HardDriveManager.filenameDict[filename];
+                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "0" + fileTSB);
+                _HardDriveManager.cascadeUnset(fileTSB, _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))));
+                // Update MBR
+                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
+                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
+            }
+            // We must create an entry in filenameDict
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+            }
+        };
+        /**
          * read
          *
          * Calls the hard drives built-in read method
@@ -238,6 +327,7 @@ var TSOS;
          * findDir
          *
          * Searches for directory name in map and returns the key of that location
+         *
          * @param filename
          */
         HardDriveManager.prototype.findDir = function (filename) {
@@ -249,11 +339,19 @@ var TSOS;
                 return key;
             }
         };
+        /**
+         * cascadeUnset
+         *
+         * Auxilary function. Unsets the "inUse" flag on all disk entries and their
+         * following entries in the linked list.
+         *
+         * @param diskEntryTSB
+         * @param diskEntryHead
+         */
         HardDriveManager.prototype.cascadeUnset = function (diskEntryTSB, diskEntryHead) {
             var thisTSB = diskEntryTSB.split("");
             var nextTSB = diskEntryHead.slice(1);
             var tsb = nextTSB.split("");
-            alert(nextTSB);
             if (nextTSB === "000") {
                 _HardDriveManager.setHead(parseInt(thisTSB[0]), parseInt(thisTSB[1]), parseInt(thisTSB[2]), "0" + nextTSB);
                 return;
@@ -262,6 +360,9 @@ var TSOS;
                 _HardDriveManager.setHead(parseInt(thisTSB[0]), parseInt(thisTSB[1]), parseInt(thisTSB[2]), "0" + nextTSB);
                 this.cascadeUnset(nextTSB, _HardDriveManager.getHead(parseInt(tsb[0]), parseInt(tsb[1]), parseInt(tsb[2])));
             }
+        };
+        HardDriveManager.prototype.getFilename = function (pcb) {
+            return "process-" + pcb.getPID() + ".~swp";
         };
         return HardDriveManager;
     }());

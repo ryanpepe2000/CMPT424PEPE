@@ -18,10 +18,22 @@ module TSOS {
             _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
         }
 
+        public runAllProcesses(): boolean {
+            let count = 0;
+            for (let pcb of _ProcessManager.getProcessList()){
+                if (pcb.getState() === "New"){
+                    _ProcessManager.getReadyQueue().enqueue(pcb.setState("Ready"));
+                    count++;
+                }
+            }
+            _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
+            return count > 0;
+        }
+
         public killProcess(pcb: ProcessControlBlock){
             _ProcessManager.getRunning().setState("Terminated");
             if (_ProcessManager.getReadyQueue().getSize() >= 1){
-                this.contextSwitch();
+                _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
             } else {
                 _CPU.isExecuting = false;
             }
@@ -41,12 +53,7 @@ module TSOS {
         public executeRoundRobin(){
             if (this.counter >=_Quantum){
                 if (_ProcessManager.getReadyQueue().getSize() >= 1){
-                    // Replacing 'this.contextSwitch()' with KrnInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, [])) results
-                    // in invalid program execution. It appears private members of the cpu/pcb/scheduler are not updating accordingly
-
-                    // Temporarily using this.contextSwitch until a solution is found.
                     _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
-                    this.contextSwitch();
 
                 }
                 this.resetCounter();

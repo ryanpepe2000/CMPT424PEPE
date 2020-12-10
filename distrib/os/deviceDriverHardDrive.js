@@ -36,7 +36,8 @@ var TSOS;
                 "write": _this.writeFile,
                 "delete": _this.deleteFile,
                 "format": _this.format,
-                "list": _this.listFiles
+                "list": _this.listFiles,
+                "swap": _this.swapProcess
             };
             _this.driverEntry = _this.krnHDDriverEntry;
             _this.isr = _this.krnHDDispatch;
@@ -63,62 +64,33 @@ var TSOS;
             }
         };
         DeviceDriverHardDrive.prototype.createFile = function (params) {
-            var dirKey = _HardDriveManager.findDir(params[0]);
-            // Key does not exist in the filenameDict
-            if (dirKey === null) {
-                // Set new key in dict
-                dirKey = _HardDriveManager.getOpenDirKey();
-                _HardDriveManager.filenameDict[params[0]] = dirKey;
-                var dirTSB = _HardDriveManager.getTSB(dirKey);
-                // Get next open file location and set it to in use
-                var fileTSB = _HardDriveManager.getTSB(_HardDriveManager.getOpenFileKey());
-                _HardDriveManager.setHead(fileTSB[0], fileTSB[1], fileTSB[2], "1000");
-                // Write filename to directory entry
-                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "1" + fileTSB.join(""));
-                _HardDriveManager.setBody(dirTSB[0], dirTSB[1], dirTSB[2], params[0]);
-                // Update MBR
-                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
-                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
-                return true;
+            var filename = params[0];
+            if (filename.indexOf("~") === -1) {
+                _HardDriveManager.createFile(filename);
             }
-            // We must create an entry in filenameDict
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File already exists."]));
-                return false;
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
-            var buffer = "";
             var filename = params[0];
             if (filename.indexOf("~") === -1) {
-                var dirKey = _HardDriveManager.findDir(params[0]);
-                // Key does not exist in the filenameDict
-                if (dirKey !== null) {
-                    var dirTSB = _HardDriveManager.getTSB(dirKey);
-                    var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
-                    var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
-                    do {
-                        var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
-                        buffer += fileText;
-                        nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
-                    } while (nextTSB !== "000");
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_READ_OUTPUT_IRQ, buffer.split("")));
+                var fileText = _HardDriveManager.readFile(filename);
+                if (fileText.length > 0) {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, fileText.split("")));
                 }
-                // We must create an entry in filenameDict
                 else {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["File is empty."]));
                 }
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid character '~'."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.writeFile = function (params) {
-            // Get Filename
+            // Get filename
             var filename = params[0];
-            var dirKey = _HardDriveManager.findDir(filename);
-            // File name exists in the directory
-            if (dirKey !== null) {
+            if (filename.indexOf("~") === -1) {
                 // Collect the file text
                 var fileText = "";
                 var i = 1;
@@ -130,53 +102,23 @@ var TSOS;
                 fileText = fileText.replace(/((\s)+^)|(\s+$)/, "");
                 // Valid file text was entered
                 if (fileText.charAt(0) === '"' && fileText.charAt(fileText.length - 1) === '"') {
-                    fileText = fileText.substring(1, fileText.length - 1);
-                    var dirTSB = _HardDriveManager.getTSB(dirKey);
-                    var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1).split("");
-                    // Reset all blocks associated with this file
-                    var nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
-                    while (nextRef !== "000") {
-                        // Get the TSB to be updated
-                        var nextTSB = nextRef.split("");
-                        // Get the reference of the referenced block
-                        nextRef = _HardDriveManager.getHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2])).slice(1);
-                        // Update the head of the current block
-                        _HardDriveManager.setHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2]), "0000");
-                    }
-                    // Write the text to the file
-                    _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), fileText);
-                    // Update MBR to reflect block usage
-                    _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
-                    return true;
+                    _HardDriveManager.writeFile(filename, fileText.slice(1, fileText.length - 1));
                 }
-                // Invalid parameters (text probably not surrounded with quotes)
                 else {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid usage. Type 'help' for more details"]));
-                    return false;
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Invalid Usage. Type 'help' for more details."]));
                 }
             }
-            // File name DNE in directory
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
-                return false;
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.deleteFile = function (params) {
-            var dirKey = _HardDriveManager.findDir(params[0]);
-            // Key does not exist in the filenameDict
-            if (dirKey !== null) {
-                var dirTSB = _HardDriveManager.getTSB(dirKey);
-                var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
-                alert(fileTSB);
-                // Set new key in dict
-                delete _HardDriveManager.filenameDict[dirKey];
-                _HardDriveManager.setHead(dirTSB[0], dirTSB[1], dirTSB[2], "0" + fileTSB);
-                _HardDriveManager.updateOpenDirKey(_HardDriveManager.findOpenDirKey());
-                _HardDriveManager.cascadeUnset(fileTSB, _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))));
+            var fileName = params[0];
+            if (fileName.indexOf("~") === -1) {
+                _HardDriveManager.deleteFile(fileName);
             }
-            // We must create an entry in filenameDict
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File could not be found."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.format = function (params) {
@@ -186,10 +128,43 @@ var TSOS;
                 _HardDriveManager.init();
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Format could not be performed"]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Format could not be performed."]));
             }
         };
         DeviceDriverHardDrive.prototype.listFiles = function (params) {
+            var dir = _HardDriveManager.filenameDict;
+            if (Object.keys(dir).length > 0) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Files: "]));
+                for (var filename in _HardDriveManager.filenameDict) {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, filename.split("")));
+                }
+            }
+            else {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Directory is empty."]));
+            }
+        };
+        DeviceDriverHardDrive.prototype.swapProcess = function (params) {
+            // Temp variables for current pcb info
+            var currPCB = params[0];
+            var currSegment = currPCB.getSegment();
+            // Get the process code from the current process
+            var currCode = _MMU.readSegment(currPCB.getSegment());
+            // Temp variables for pcb on disk
+            var diskPCB = params[1];
+            var diskSegment = diskPCB.getSegment();
+            // Swap Segments (logical for MMU)
+            diskPCB.updateSegment(currSegment);
+            currPCB.updateSegment(diskSegment);
+            _Scheduler.storeToCPU(diskPCB);
+            _CPU.updateSegment(currSegment);
+            // Swap the disk process out
+            var diskFilename = _HardDriveManager.getFilename(diskPCB);
+            _HardDriveManager.deleteFile(diskFilename);
+            // Swap the current process in
+            // Create and write to new swap file
+            var currFilename = _HardDriveManager.getFilename(currPCB);
+            _HardDriveManager.createFile(currFilename);
+            _HardDriveManager.writeFile(currFilename, currCode);
         };
         return DeviceDriverHardDrive;
     }(TSOS.DeviceDriver));

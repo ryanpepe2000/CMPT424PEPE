@@ -34,7 +34,7 @@ const DISK_OPERATION_IRQ: number = 7;
 
 const DISK_OPERATION_ERROR_IRQ: number = 8;
 
-const DISK_READ_OUTPUT_IRQ: number = 9;
+const DISK_OUTPUT_IRQ: number = 9;
 
 const MEMORY_LENGTH: number = 0x100; // Default amount of memory in a block is 256 bytes (0x100)
 const MEMORY_BLOCKS: number = 3;

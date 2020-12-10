@@ -40,6 +40,14 @@ module TSOS {
             }
         }
 
+        public readSegment(segment: number): string {
+            let buffer: string = "";
+            for (let i = 0; i < MEMORY_LENGTH; i++){
+                buffer += _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(i, segment)));
+            }
+            return buffer;
+        }
+
         public emptySegment(segment: number){
             this.availableSegments[segment] = true;
         }
