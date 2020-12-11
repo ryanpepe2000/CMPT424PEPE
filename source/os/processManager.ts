@@ -47,7 +47,7 @@ module TSOS {
         public findProcessInMemory(): ProcessControlBlock{
             for (let pcb of this.getProcessList()){
                 // Find non terminated process in memory
-                if (pcb.getState() !== "Terminated" && pcb.getSegment() !== this.HARD_DRIVE){
+                if (pcb.getSegment() !== this.HARD_DRIVE){
                     return pcb;
                 }
             }

@@ -203,7 +203,7 @@ module TSOS {
             if (_ProcessManager.getProcessList().length > 0){
                 for (let pid = 0; pid < _ProcessManager.getProcessList().length; pid++){
                     let process =  _ProcessManager.getPCB(pid);
-                    let location = "Segment " + (process.getSegment()+1);
+                    let location = "Memory";
                     if (process.getSegment() == _ProcessManager.HARD_DRIVE)
                         location = "Hard Drive";
 

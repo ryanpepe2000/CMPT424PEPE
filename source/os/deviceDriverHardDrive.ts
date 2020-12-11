@@ -127,7 +127,9 @@ module TSOS {
             if (Object.keys(dir).length > 0){
                 _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Files: "]));
                 for (let filename in _HardDriveManager.filenameDict){
-                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, filename.split("")));
+                    if (filename.indexOf("~") === -1){
+                        _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, filename.split("")));
+                    }
                 }
             } else {
                 _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Directory is empty."]));
@@ -139,7 +141,7 @@ module TSOS {
             let currPCB: ProcessControlBlock = params[0];
             let currSegment: number = currPCB.getSegment();
             // Get the process code from the current process
-            let currCode: string = _MMU.readSegment(currPCB.getSegment());
+            let currCode: string = _MMU.readSegment(currSegment);
             // Temp variables for pcb on disk
             let diskPCB: ProcessControlBlock = params[1];
             let diskSegment: number = diskPCB.getSegment();
@@ -151,7 +153,7 @@ module TSOS {
 
             // Swap the disk process out
             let diskFilename = _HardDriveManager.getFilename(diskPCB);
-            let diskCode = _HardDriveManager.readFile(diskFilename);
+            let diskCode = _HardDriveManager.readFile(diskFilename);//.replace(/(0)+$/,"00"); // Remove unnecessary zeros
             let diskCodeArray: string[] = diskCode.match(/..?/g);
             _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);

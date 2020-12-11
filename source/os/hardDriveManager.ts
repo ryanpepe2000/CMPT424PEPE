@@ -229,7 +229,7 @@ module TSOS {
             let dirKey = _HardDriveManager.findDir(filename);
             // File name exists in the directory
             if (dirKey !== null) {
-                //Get TSB of file
+                //Get TSB of
                 let dirTSB = _HardDriveManager.getTSB(dirKey);
                 let fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1).split("");
 

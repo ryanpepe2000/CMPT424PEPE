@@ -32,6 +32,7 @@ module TSOS {
 
         public killProcess(pcb: ProcessControlBlock){
             _ProcessManager.getRunning().setState("Terminated");
+            pcb.updateSegment(_ProcessManager.TERMINATED);
             if (_ProcessManager.getReadyQueue().getSize() >= 1){
                 _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
             } else {
@@ -45,6 +46,7 @@ module TSOS {
                 let pcb: ProcessControlBlock = _ProcessManager.getReadyQueue().dequeue();
                 if (pcb != undefined){
                     pcb.setState("Terminated");
+                    pcb.updateSegment(_ProcessManager.TERMINATED);
                 }
             }
             _CPU.isExecuting = false;
@@ -76,6 +78,14 @@ module TSOS {
                 _Scheduler.storeToCPU(nextPCB);
             }
             return nextPCB;
+        }
+
+        public attemptSwap(runningPcb: ProcessControlBlock): void {
+            // Check if swap is necessary
+            if (runningPcb.getSegment() === _ProcessManager.HARD_DRIVE) {
+                let memPCB = _ProcessManager.findProcessInMemory();
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, ["swap", memPCB, runningPcb]));
+            }
         }
 
         public storeToPCB(pcb: ProcessControlBlock){

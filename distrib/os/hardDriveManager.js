@@ -211,7 +211,7 @@ var TSOS;
             var dirKey = _HardDriveManager.findDir(filename);
             // File name exists in the directory
             if (dirKey !== null) {
-                //Get TSB of file
+                //Get TSB of
                 var dirTSB = _HardDriveManager.getTSB(dirKey);
                 var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1).split("");
                 // Reset all blocks associated with this file

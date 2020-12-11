@@ -148,7 +148,7 @@ var TSOS;
             var currPCB = params[0];
             var currSegment = currPCB.getSegment();
             // Get the process code from the current process
-            var currCode = _MMU.readSegment(currPCB.getSegment());
+            var currCode = _MMU.readSegment(currSegment);
             // Temp variables for pcb on disk
             var diskPCB = params[1];
             var diskSegment = diskPCB.getSegment();
@@ -159,7 +159,7 @@ var TSOS;
             _CPU.updateSegment(currSegment);
             // Swap the disk process out
             var diskFilename = _HardDriveManager.getFilename(diskPCB);
-            var diskCode = _HardDriveManager.readFile(diskFilename);
+            var diskCode = _HardDriveManager.readFile(diskFilename); //.replace(/(0)+$/,"00"); // Remove unnecessary zeros
             var diskCodeArray = diskCode.match(/..?/g);
             _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);

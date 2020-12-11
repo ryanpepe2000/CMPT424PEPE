@@ -75,12 +75,8 @@ module TSOS {
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Running") {
-                    // Check if swap is necessary
-                    let pcb = _ProcessManager.getRunning();
-                    if (pcb.getSegment() === _ProcessManager.HARD_DRIVE) {
-                        let memPCB = _ProcessManager.findProcessInMemory();
-                        _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, ["swap", memPCB, pcb]));
-                    }
+                    //Swap if necessary
+                    _Scheduler.attemptSwap(pcb);
                     let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, this.segment))));
                     let pcInc = instruction.getPCInc();
                     // Need to pass proper physical addresses using logical address and segments
@@ -89,7 +85,14 @@ module TSOS {
                         _MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC + 2, this.segment)))   // The following item in memory
                     ]);
                     if (instruction.getMneumonic() === "BRK") {
-                        pcb.setState("Terminated")
+                        pcb.setState("Terminated");
+                        pcb.updateSegment(_ProcessManager.TERMINATED);
+                        // Delete file objects of terminated processes from hard drive
+                        if (Object.keys(_HardDriveManager.filenameDict)
+                            .indexOf("process-"+pcb.getPID()+".~swp") !== -1){
+                            _KernelInterruptQueue.enqueue(
+                                new Interrupt(DISK_OPERATION_IRQ, ["delete", "process-"+pcb.getPID()+".~swp"]));
+                        }
                     }
                     _CPU.addPc(pcInc);
                     this.updatePCB(pcb);
