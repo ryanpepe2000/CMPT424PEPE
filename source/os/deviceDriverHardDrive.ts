@@ -171,6 +171,7 @@ module TSOS {
             let currFilename = _HardDriveManager.getFilename(currPCB);
             _HardDriveManager.createFile(currFilename);
             _HardDriveManager.writeFile(currFilename, currCode);
+            _Kernel.krnTrace("Swapping");
         }
     }
 }

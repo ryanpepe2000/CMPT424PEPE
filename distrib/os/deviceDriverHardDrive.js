@@ -65,11 +65,15 @@ var TSOS;
         };
         DeviceDriverHardDrive.prototype.createFile = function (params) {
             var filename = params[0];
+            if (filename === undefined) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Please enter file name."]));
+                return;
+            }
             if (filename.indexOf("~") === -1) {
                 _HardDriveManager.createFile(filename);
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.readFile = function (params) {
@@ -80,11 +84,11 @@ var TSOS;
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, fileText.split("")));
                 }
                 else {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["File is empty."]));
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["File is empty."]));
                 }
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.writeFile = function (params) {
@@ -105,20 +109,24 @@ var TSOS;
                     _HardDriveManager.writeFile(filename, fileText.slice(1, fileText.length - 1));
                 }
                 else {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Invalid Usage. Type 'help' for more details."]));
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid Usage. Type 'help' for more details."]));
                 }
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.deleteFile = function (params) {
             var fileName = params[0];
+            if (fileName === undefined) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Please enter file name."]));
+                return;
+            }
             if (fileName.indexOf("~") === -1) {
                 _HardDriveManager.deleteFile(fileName);
             }
             else {
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         };
         DeviceDriverHardDrive.prototype.format = function (params) {
@@ -170,6 +178,7 @@ var TSOS;
             var currFilename = _HardDriveManager.getFilename(currPCB);
             _HardDriveManager.createFile(currFilename);
             _HardDriveManager.writeFile(currFilename, currCode);
+            _Kernel.krnTrace("Swapping");
         };
         return DeviceDriverHardDrive;
     }(TSOS.DeviceDriver));

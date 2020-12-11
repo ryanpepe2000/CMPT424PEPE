@@ -75,9 +75,12 @@ module TSOS {
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Running") {
-                    //Swap if necessary
+                    // Swap if necessary (end the cycle on swaps)
                     _Scheduler.attemptSwap(pcb);
                     let instruction = this.getInstruction(_MemoryAccessor.readByte(Utils.decToHex(_MMU.translateAddress(this.PC, this.segment))));
+                    if (instruction === undefined){ // This will happen if a file swaps during a cycle
+                        return;
+                    }
                     let pcInc = instruction.getPCInc();
                     // Need to pass proper physical addresses using logical address and segments
                     instruction.getCallback()([

@@ -80,11 +80,14 @@ module TSOS {
             return nextPCB;
         }
 
-        public attemptSwap(runningPcb: ProcessControlBlock): void {
+        public attemptSwap(runningPcb: ProcessControlBlock): boolean {
             // Check if swap is necessary
             if (runningPcb.getSegment() === _ProcessManager.HARD_DRIVE) {
                 let memPCB = _ProcessManager.findProcessInMemory();
                 _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, ["swap", memPCB, runningPcb]));
+                return true;
+            } else {
+                return false;
             }
         }
 
