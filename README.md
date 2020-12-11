@@ -1,5 +1,7 @@
 ##2019 Browser-Based Operating System in TypeScript
 
+Note: I attempted to fix the compile issue where 'sh c' was not compiling properly on other machines, but I was unable to test anything because compiling is working just fine on my local machine. Let me know if you are having any issues
+
 This repository contains the code for a browser-based operator system simulator. Each project will be committed under a branch dedicated to the project name (ex: **iProject1**). Additionally, upon completion of each project section, the respective branch will be merged with master.
 
 ####Introduction####
