@@ -8,8 +8,27 @@
 module TSOS {
 
     export class Scheduler {
+        private currAlgorithm = "rr";
+
         constructor(private quantum: number = _Quantum,
                     private counter: number = 0) {
+        }
+
+        public runSchedule(): void{
+            if (this.currAlgorithm == "rr"){
+                this.executeRoundRobin();
+            } else if (this.currAlgorithm == "fcfs"){
+                this.executeFCFS();
+             } else if (this.currAlgorithm == "priority"){
+                this.executePriority();
+            }
+        }
+
+        public setAlgorithm(name: string){
+            this.currAlgorithm = name;
+        }
+        public getAlgorithm(): string{
+            return this.currAlgorithm.toUpperCase();
         }
 
         public runProcess(pcb: ProcessControlBlock){
@@ -63,6 +82,30 @@ module TSOS {
             this.counter++;
         }
 
+        public executeFCFS(){
+            if (this.counter >= Infinity){
+                if (_ProcessManager.getReadyQueue().getSize() >= 1){
+                    _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
+                }
+                this.resetCounter();
+            }
+            _CPU.execute();
+            this.counter++;
+        }
+
+        //ToDo: Implement a priority queue to reduce overhead
+        public executePriority(){
+            let currPcb = _ProcessManager.getRunning();
+            for (let pcb of _ProcessManager.getReadyQueue().q){
+                if (currPcb.getPriority() < pcb.getPriority()) {
+                    // Switch context to the higher priority and execute
+                    this.forceContextSwitch(pcb);
+                    break;
+                }
+            }
+            _CPU.execute();
+        }
+
         public contextSwitch(): ProcessControlBlock{
             let currentPCB: ProcessControlBlock = _ProcessManager.getRunning();
             // Dequeue next PCB and dispatch for scheduling
@@ -78,6 +121,21 @@ module TSOS {
                 _Scheduler.storeToCPU(nextPCB);
             }
             return nextPCB;
+        }
+
+        public forceContextSwitch(pcb: ProcessControlBlock): ProcessControlBlock{
+            let currentPCB: ProcessControlBlock = _ProcessManager.getRunning();
+            if (currentPCB == undefined) {
+                pcb.setState("Running");
+                _Scheduler.storeToCPU(pcb);
+            } else {
+                // Save current CPU context in pcb and switch contexts to the next in the ready queue
+                _Scheduler.storeToPCB(currentPCB);
+                _ProcessManager.getReadyQueue().enqueue(currentPCB.setState("Ready"));
+                pcb.setState("Running");
+                _Scheduler.storeToCPU(pcb);
+            }
+            return pcb;
         }
 
         public attemptSwap(runningPcb: ProcessControlBlock): boolean {

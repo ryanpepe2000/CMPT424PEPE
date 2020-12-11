@@ -30,8 +30,9 @@ module TSOS {
             return this.readyQueue;
         }
 
-        public createProcess(segment: number): ProcessControlBlock {
-            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID(), segment);
+        public createProcess(segment: number, priority?: number): ProcessControlBlock {
+            if (priority === undefined) priority = -1;
+            let pcb: ProcessControlBlock = new ProcessControlBlock(this.getNextPID(), segment, priority);
             this.processes[this.processes.length] = pcb;
             return pcb;
         }
@@ -42,6 +43,7 @@ module TSOS {
                     return pcb;
                 }
             }
+            return null;
         }
 
         public findProcessInMemory(): ProcessControlBlock{
@@ -71,6 +73,7 @@ module TSOS {
     export class ProcessControlBlock {
         constructor(public pid: number,
                     public segment: number,
+                    public priority: number,
                     public pc: number = 0,
                     public acc: number = 0,
                     public xReg: number = 0,
@@ -91,6 +94,14 @@ module TSOS {
 
         public setPC(num: number) {
             this.pc = num;
+        }
+
+        public getPriority(): number{
+            return this.priority;
+        }
+
+        public setPriority(num: number) {
+            this.priority = num;
         }
 
         public addPC(amount: number){

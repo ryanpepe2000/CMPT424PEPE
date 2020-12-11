@@ -189,6 +189,18 @@ module TSOS {
                 "- <filename> Deletes a file");
             this.commandList[this.commandList.length] = sc;
 
+            // getSchedule
+            sc = new ShellCommand(this.shellGetSchedule,
+                "getschedule",
+                "- Lists the name of the current scheduling algorithm");
+            this.commandList[this.commandList.length] = sc;
+
+            // setSchedule
+            sc = new ShellCommand(this.shellSetSchedule,
+                "setschedule",
+                "- <fcfs | rr | priority> Sets the scheduling algorithm");
+            this.commandList[this.commandList.length] = sc;
+
             // Display the initial prompt.
             this.putPrompt();
         }
@@ -445,6 +457,12 @@ module TSOS {
                     case "delete":
                         _StdOut.putText("Deletes a file");
                         break;
+                    case "getSchedule":
+                        _StdOut.putText("Gets the name of the current CPU scheduling algorithm");
+                        break;
+                    case "setSchedule":
+                        _StdOut.putText("Sets the current CPU scheduling algorithm");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -529,9 +547,21 @@ module TSOS {
                         return;
                     } else {
                         // Create PCB and add it to the Resident List
-                        let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
-                        _MMU.fillSegment(segment, userCode);
-                        _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                        if (args[0] === undefined){
+                            let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment);
+                            _MMU.fillSegment(segment, userCode);
+                            _StdOut.putText("Process Loaded. PID: " + pcb.pid);
+                        } else {
+                            let priority = args[0];
+                            if (/^-?[\d.]+(?:e-?\d+)?$/.test(priority)){
+                                let priorityNum = parseInt(priority);
+                                let pcb: ProcessControlBlock = _ProcessManager.createProcess(segment, priorityNum);
+                                _MMU.fillSegment(segment, userCode);
+                                _StdOut.putText("Process Loaded. PID: " + pcb.pid + " | Priority: " + priority);
+                            } else {
+                                _StdOut.putText("Please enter a valid priority.");
+                            }
+                        }
                     }
                 }
                 // Create a swap file and write code to it
@@ -695,6 +725,24 @@ module TSOS {
             // Enqueue a new interrupt to process the disk operation
             _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, args));
         }
+
+        // CPU Algorithms
+        public shellGetSchedule(args: string[]){
+            _StdOut.putText("Current Schedule: " + _Scheduler.getAlgorithm());
+        }
+
+        // CPU Algorithms
+        public shellSetSchedule(args: string[]){
+           if (args.length > 0){
+               let schedule = args[0].toLowerCase();
+               if (schedule === "fcfs" || schedule === "rr" || schedule === "priority"){
+                   _Scheduler.setAlgorithm(schedule);
+               } else {
+                   _StdOut.putText("Invalid algorithm type");
+               }
+           }
+        }
+
     }
 
     // Console history is used in traversal of previous commands.

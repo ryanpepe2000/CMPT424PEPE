@@ -289,7 +289,7 @@ module TSOS {
                             tableContent+=`<td style="color: grey">${_HardDrive.translateKey(i,j,k)}</td>`;
                             tableContent+=`<td style="color: darkred">${Utils.diskTextToAscii(content.slice(0,2))}</td>`;
                             tableContent+=`<td style="color: black">${Utils.diskTextToAscii(content.slice(2,8))}</td>`;
-                            tableContent+=`<td style="color: dodgerblue">${content.slice(8)}</td>`;
+                            tableContent+=`<td style="color: dodgerblue">${content.slice(8).toUpperCase()}</td>`;
                         tableContent+=`</tr>`;
                     }
                 }

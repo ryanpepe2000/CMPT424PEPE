@@ -161,7 +161,7 @@ module TSOS {
 
             // Swap the disk process out
             let diskFilename = _HardDriveManager.getFilename(diskPCB);
-            let diskCode = _HardDriveManager.readFile(diskFilename);//.replace(/(0)+$/,"00"); // Remove unnecessary zeros
+            let diskCode = _HardDriveManager.readFile(diskFilename); // Remove unnecessary zeros
             let diskCodeArray: string[] = diskCode.match(/..?/g);
             _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);
@@ -170,7 +170,7 @@ module TSOS {
             // Create and write to new swap file
             let currFilename = _HardDriveManager.getFilename(currPCB);
             _HardDriveManager.createFile(currFilename);
-            _HardDriveManager.writeFile(currFilename, currCode);
+            _HardDriveManager.writeFile(currFilename, currCode.replace(/(0)+$/,"00"));
             _Kernel.krnTrace("Swapping");
         }
     }

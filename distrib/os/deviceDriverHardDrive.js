@@ -169,7 +169,7 @@ var TSOS;
             _CPU.updateSegment(currSegment);
             // Swap the disk process out
             var diskFilename = _HardDriveManager.getFilename(diskPCB);
-            var diskCode = _HardDriveManager.readFile(diskFilename); //.replace(/(0)+$/,"00"); // Remove unnecessary zeros
+            var diskCode = _HardDriveManager.readFile(diskFilename); // Remove unnecessary zeros
             var diskCodeArray = diskCode.match(/..?/g);
             _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);
@@ -177,7 +177,7 @@ var TSOS;
             // Create and write to new swap file
             var currFilename = _HardDriveManager.getFilename(currPCB);
             _HardDriveManager.createFile(currFilename);
-            _HardDriveManager.writeFile(currFilename, currCode);
+            _HardDriveManager.writeFile(currFilename, currCode.replace(/(0)+$/, "00"));
             _Kernel.krnTrace("Swapping");
         };
         return DeviceDriverHardDrive;

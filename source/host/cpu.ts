@@ -64,7 +64,7 @@ module TSOS {
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
-            _Scheduler.executeRoundRobin();
+            _Scheduler.runSchedule();
              // Handles single step logic
             if (_SingleStep) {
                 this.isExecuting = false;
@@ -93,8 +93,7 @@ module TSOS {
                         // Delete file objects of terminated processes from hard drive
                         if (Object.keys(_HardDriveManager.filenameDict)
                             .indexOf("process-"+pcb.getPID()+".~swp") !== -1){
-                            _KernelInterruptQueue.enqueue(
-                                new Interrupt(DISK_OPERATION_IRQ, ["delete", "process-"+pcb.getPID()+".~swp"]));
+                            _HardDriveManager.deleteFile("process-"+pcb.getPID()+".~swp");
                         }
                     }
                     _CPU.addPc(pcInc);
