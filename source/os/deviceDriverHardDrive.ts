@@ -56,10 +56,14 @@ module TSOS {
 
         public createFile(params): void {
             let filename: string = params[0];
+            if (filename === undefined){
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Please enter file name."]));
+                return;
+            }
             if (filename.indexOf("~") === -1){
                 _HardDriveManager.createFile(filename);
             } else {
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         }
 
@@ -70,10 +74,10 @@ module TSOS {
                 if (fileText.length > 0){
                     _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, fileText.split("")));
                 } else {
-                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["File is empty."]));
+                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["File is empty."]));
                 }
             } else {
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
 
         }
@@ -95,20 +99,24 @@ module TSOS {
                 if (fileText.charAt(0) === '"' && fileText.charAt(fileText.length-1) === '"') {
                     _HardDriveManager.writeFile(filename, fileText.slice(1,fileText.length-1));
                 } else {
-                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Invalid Usage. Type 'help' for more details."]));
+                    _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Invalid Usage. Type 'help' for more details."]));
                 }
             } else {
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
 
         }
 
         public deleteFile(params) {
             let fileName: string = params[0];
+            if (fileName === undefined){
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Please enter file name."]));
+                return;
+            }
             if (fileName.indexOf("~") === -1){
                 _HardDriveManager.deleteFile(fileName);
             } else {
-                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OUTPUT_IRQ, ["Could not read value '~'."]));
+                _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_ERROR_IRQ, ["Could not read value '~'."]));
             }
         }
 

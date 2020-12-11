@@ -136,7 +136,9 @@ var TSOS;
             if (Object.keys(dir).length > 0) {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, ["Files: "]));
                 for (var filename in _HardDriveManager.filenameDict) {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, filename.split("")));
+                    if (filename.indexOf("~") === -1) {
+                        _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISK_OUTPUT_IRQ, filename.split("")));
+                    }
                 }
             }
             else {
