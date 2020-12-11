@@ -98,6 +98,7 @@ var TSOS;
             var end = diskEntry.slice(this.MBR_NEXT_DIR_LOC[1]);
             diskEntry = dirKey + end;
             this.setBody(0, 0, 0, diskEntry);
+            return dirKey;
         };
         HardDriveManager.prototype.getOpenFileKey = function () {
             // Get MBR content
@@ -111,6 +112,7 @@ var TSOS;
             var end = diskEntry.slice(this.MBR_NEXT_FILE_LOC[1]);
             diskEntry = start + fileKey + end;
             this.setBody(0, 0, 0, diskEntry);
+            return fileKey;
         };
         /**
          * findOpenDir
@@ -158,41 +160,6 @@ var TSOS;
             TSOS.Control.updateHDDisplay();
         };
         /**
-         * writeImmediate
-         *
-         * Helper function to be used by device driver. Will directly write
-         * text to a specified TSB and cascade writes as necessary. This
-         * method will only be used if the device driver guarentees that a file should
-         * be written with text
-         *
-         * @param track
-         * @param sector
-         * @param block
-         * @param text
-         */
-        HardDriveManager.prototype.writeImmediate = function (track, sector, block, text) {
-            // Write the text to blocks
-            if (text.length > _HardDriveManager.BODY_LENGTH) {
-                // Split the text into a usable size
-                var thisText = text.slice(0, _HardDriveManager.BODY_LENGTH);
-                var nextText = text.substr(_HardDriveManager.BODY_LENGTH);
-                // Get the next available block
-                var nextKey = _HardDriveManager.getOpenFileKey();
-                var nextTSB = _HardDriveManager.getTSB(nextKey);
-                // Write the first text to the current block
-                _HardDriveManager.setHead(track, sector, block, "1" + nextKey.split(":").join(""));
-                _HardDriveManager.setBody(track, sector, block, thisText);
-                // Update MBR to reflect block usage
-                _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
-                return this.writeImmediate(nextTSB[0], nextTSB[1], nextTSB[2], nextText);
-            }
-            else {
-                _HardDriveManager.setHead(track, sector, block, "1000");
-                _HardDriveManager.setBody(track, sector, block, text);
-                return true;
-            }
-        };
-        /**
          * File Auxiliary Methods
          */
         HardDriveManager.prototype.createFile = function (filename) {
@@ -226,12 +193,13 @@ var TSOS;
             if (dirKey !== null) {
                 var dirTSB = _HardDriveManager.getTSB(dirKey);
                 var fileTSB = _HardDriveManager.getHead(dirTSB[0], dirTSB[1], dirTSB[2]).slice(1);
-                var nextTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
-                do {
+                var loop = true;
+                while (loop) {
                     var fileText = _HardDriveManager.getBody(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2)));
                     buffer += fileText;
-                    nextTSB = _HardDriveManager.getHead(parseInt(nextTSB.charAt(0)), parseInt(nextTSB.charAt(1)), parseInt(nextTSB.charAt(2))).slice(1);
-                } while (nextTSB !== "000");
+                    fileTSB = _HardDriveManager.getHead(parseInt(fileTSB.charAt(0)), parseInt(fileTSB.charAt(1)), parseInt(fileTSB.charAt(2))).slice(1);
+                    loop = fileTSB !== "000";
+                }
                 return buffer;
             }
             else {
@@ -250,14 +218,30 @@ var TSOS;
                 var nextRef = _HardDriveManager.getHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2])).slice(1);
                 while (nextRef !== "000") {
                     // Get the TSB to be updated
-                    var nextTSB = nextRef.split("");
+                    var nextTSB_1 = nextRef.split("");
                     // Get the reference of the referenced block
-                    nextRef = _HardDriveManager.getHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2])).slice(1);
+                    nextRef = _HardDriveManager.getHead(parseInt(nextTSB_1[0]), parseInt(nextTSB_1[1]), parseInt(nextTSB_1[2])).slice(1);
                     // Update the head of the current block
-                    _HardDriveManager.setHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2]), "0000");
+                    _HardDriveManager.setHead(parseInt(nextTSB_1[0]), parseInt(nextTSB_1[1]), parseInt(nextTSB_1[2]), "0000");
                 }
-                // Write the text to the file
-                _HardDriveManager.writeImmediate(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), text);
+                // Update MBR to reflect block usage
+                this.updateOpenFileKey(this.findOpenFileKey());
+                // Set the next unopened spot to in use
+                var nextTSB = this.getOpenFileKey().split(":");
+                while (text.length > this.BODY_LENGTH) {
+                    // Cut the text
+                    var shortText = text.slice(0, this.BODY_LENGTH);
+                    text = text.substr(this.BODY_LENGTH);
+                    _HardDriveManager.setHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), "1" + nextTSB.join(""));
+                    _HardDriveManager.setBody(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), shortText);
+                    // Refresh to MBR
+                    fileTSB = nextTSB;
+                    _HardDriveManager.setHead(parseInt(nextTSB[0]), parseInt(nextTSB[1]), parseInt(nextTSB[2]), "1000");
+                    this.updateOpenFileKey(this.findOpenFileKey());
+                    nextTSB = this.getOpenFileKey().split(":");
+                }
+                _HardDriveManager.setHead(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), "1000");
+                _HardDriveManager.setBody(parseInt(fileTSB[0]), parseInt(fileTSB[1]), parseInt(fileTSB[2]), text);
                 // Update MBR to reflect block usage
                 _HardDriveManager.updateOpenFileKey(_HardDriveManager.findOpenFileKey());
             }

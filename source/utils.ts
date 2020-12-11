@@ -62,7 +62,7 @@ module TSOS {
         }
 
         public static removePad(hexString: string): number {
-            let retval = hexString.replace(/^0+/g, "");
+            let retval = hexString.replace(/^0+/g, "0");
             if (retval === ""){
                 return 0;
             } else return this.hexToDec(retval);

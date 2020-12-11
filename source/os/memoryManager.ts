@@ -47,11 +47,15 @@ module TSOS {
             }
             return buffer;
         }
+        public writeSegment(segment: number, hexCode: string): void {
+            for (let i = 0; i < MEMORY_LENGTH; i++){
+                //_MemoryAccessor.writeByte(hex_MMU.translateAddress(i, segment));
+            }
+        }
 
         public emptySegment(segment: number){
             this.availableSegments[segment] = true;
         }
-
         public getSegmentBounds(segment: number){
             if (segment == 0) {
                 return [0, MEMORY_LENGTH-1];

@@ -37,7 +37,13 @@ module TSOS {
 
         // Methods to be used by memory accessor
         getMemory(address: string): string{
-            return this.memory[Utils.removePad(address)];
+            let val = ("00" + this.memory[Utils.removePad(address)]).replace(/^0+/, "");
+            if (val.length === 1) {
+                val = "0" + val;
+            } else if (val.length == 0){
+                val = "00";
+            }
+            return val;
         }
         setMemory(address:number, val: string): boolean{
             try{

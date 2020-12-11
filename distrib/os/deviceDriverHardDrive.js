@@ -159,6 +159,9 @@ var TSOS;
             _CPU.updateSegment(currSegment);
             // Swap the disk process out
             var diskFilename = _HardDriveManager.getFilename(diskPCB);
+            var diskCode = _HardDriveManager.readFile(diskFilename);
+            var diskCodeArray = diskCode.match(/..?/g);
+            _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);
             // Swap the current process in
             // Create and write to new swap file

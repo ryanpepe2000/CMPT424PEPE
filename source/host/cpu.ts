@@ -64,7 +64,6 @@ module TSOS {
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
-            // Do the real work here. Be sure to set this.isExecuting appropriately.
             _Scheduler.executeRoundRobin();
              // Handles single step logic
             if (_SingleStep) {
@@ -76,7 +75,8 @@ module TSOS {
         public execute(): void {
             for (let pcb of _ProcessManager.getProcessList()) {
                 if (pcb.state === "Running") {
-                    // Process is in memory
+                    // Check if swap is necessary
+                    let pcb = _ProcessManager.getRunning();
                     if (pcb.getSegment() === _ProcessManager.HARD_DRIVE) {
                         let memPCB = _ProcessManager.findProcessInMemory();
                         _KernelInterruptQueue.enqueue(new Interrupt(DISK_OPERATION_IRQ, ["swap", memPCB, pcb]));

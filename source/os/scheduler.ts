@@ -54,7 +54,6 @@ module TSOS {
             if (this.counter >=_Quantum){
                 if (_ProcessManager.getReadyQueue().getSize() >= 1){
                     _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH_IRQ, []));
-
                 }
                 this.resetCounter();
             }

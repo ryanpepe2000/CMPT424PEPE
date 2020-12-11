@@ -151,6 +151,9 @@ module TSOS {
 
             // Swap the disk process out
             let diskFilename = _HardDriveManager.getFilename(diskPCB);
+            let diskCode = _HardDriveManager.readFile(diskFilename);
+            let diskCodeArray: string[] = diskCode.match(/..?/g);
+            _MMU.fillSegment(currSegment, diskCodeArray);
             _HardDriveManager.deleteFile(diskFilename);
 
             // Swap the current process in
